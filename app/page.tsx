@@ -16,6 +16,7 @@ const EMPTY_DATA: StatusData = {
 };
 
 type Lang = "cs" | "en";
+type SeasonKey = "winter" | "spring" | "summer" | "autumn";
 
 const TEXT = {
   cs: {
@@ -46,6 +47,15 @@ function formatThickness(value: string | null) {
   return value ? value + " cm" : "—";
 }
 
+function getSeasonKey(): SeasonKey {
+  const now = new Date();
+  const month = now.getMonth() + 1;
+  if (month >= 12 || month <= 3) return "winter";
+  if (month >= 4 && month <= 5) return "spring";
+  if (month >= 6 && month <= 8) return "summer";
+  return "autumn";
+}
+
 export default function Home() {
   const [data, setData] = useState<StatusData>(EMPTY_DATA);
   const [lang, setLang] = useState<Lang>("cs");
@@ -53,8 +63,12 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsBodyRef = useRef<HTMLDivElement | null>(null);
+  const [seasonOverride, setSeasonOverride] = useState<"auto" | "winter" | "spring" | "summer" | "autumn">("auto");
 
   const status: StatusKind = data.status || "off_season";
+  const seasonKey = seasonOverride !== "auto" ? seasonOverride : getSeasonKey();
+  const displayStatus: StatusKind =
+    status === "off_season" && data.reason === "no_data" && seasonKey === "winter" ? "not_ready" : status;
 
   const content = useMemo(() => TEXT[lang], [lang]);
 
@@ -93,6 +107,7 @@ export default function Home() {
           status: json.status || "off_season",
           reason: json.reason || "unknown",
         });
+        setSeasonOverride(json?.debug?.enabled ? (json?.debug?.seasonOverride || "auto") : "auto");
       } catch {
         // ignore
       }
@@ -107,8 +122,8 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    setMessage(pickMessage(status, lang, data.reason));
-  }, [status, lang, data.reason]);
+    setMessage(pickMessage(displayStatus, lang, data.reason, seasonOverride));
+  }, [displayStatus, lang, data.reason, seasonOverride]);
 
   const lines = lang === "cs" ? data.detailsCzLines : data.detailsEnLines;
   const filteredLines = lines.filter((line) => {
@@ -148,13 +163,17 @@ export default function Home() {
         "min-h-screen flex items-center justify-center px-6 pb-12 pt-8",
         "page-enter",
         ready ? "is-ready" : "",
-        status === "ready" ? "bg-statusGreen text-black" : "",
-        status === "not_ready" ? "bg-statusRed text-white" : "",
-        status === "caution" ? "bg-slate-900 text-statusYellow" : "",
-        status === "off_season" ? "bg-statusNeutral text-white" : "",
+        displayStatus === "ready" ? "bg-statusGreen text-white" : "",
+        displayStatus === "not_ready" ? "bg-statusRed text-white" : "",
+        displayStatus === "caution" ? "bg-slate-900 text-statusYellow" : "",
+        displayStatus === "off_season" ? "text-white" : "",
+        displayStatus === "off_season" && seasonKey === "winter" ? "bg-season-winter" : "",
+        displayStatus === "off_season" && seasonKey === "spring" ? "bg-season-spring" : "",
+        displayStatus === "off_season" && seasonKey === "summer" ? "bg-season-summer" : "",
+        displayStatus === "off_season" && seasonKey === "autumn" ? "bg-season-autumn" : "",
       ].join(" ")}
     >
-      <div className="fixed right-5 top-5 inline-flex gap-2" role="group" aria-label="Language">
+      <div className="fixed right-5 top-5 inline-flex gap-1" role="group" aria-label="Language">
         <button
           type="button"
           className={`rounded-full px-3 py-1 text-sm ${lang === "cs" ? "font-bold opacity-100" : "opacity-80"}`}
@@ -172,56 +191,75 @@ export default function Home() {
       </div>
 
       <main className="w-full text-left lg:max-w-[1200px]">
-        <div className="fade-in delay-1 text-[16px] tracking-[0.08em] uppercase opacity-80 font-title font-extrabold">
-          {content.title}
+        <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] uppercase font-title font-extrabold">
+          <span className="opacity-55">{content.title}</span>
         </div>
-        <div className="fade-in delay-2 mt-2 text-[clamp(44px,9vw,112px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[18ch]">
+        <div
+          className={[
+            "fade-in delay-2 mt-2 text-[clamp(44px,9vw,112px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[18ch]",
+            displayStatus === "off_season" ? "text-white" : "",
+          ].join(" ")}
+        >
           {message}
         </div>
 
-        <div className="fade-in delay-3 mt-2 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
+        <div className="fade-in delay-3 mt-8 md:mt-4 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
           <div>
-            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-85">
+            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-55">
               {content.thicknessLabel}
             </span>
-            <div>{formatThickness(data.thicknessRange)}</div>
+            <div>
+              {displayStatus === "off_season" ? "0 cm" : formatThickness(data.thicknessRange)}
+            </div>
           </div>
-          <div>
-            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-85">
-              {content.dateLabel}
-            </span>
-            <div>{formatDate(data.measurementDate)}</div>
-          </div>
+          {displayStatus !== "off_season" ? (
+            <div>
+              <span className="block text-[14px] tracking-[0.08em] uppercase opacity-55">
+                {content.dateLabel}
+              </span>
+              <div>{formatDate(data.measurementDate)}</div>
+            </div>
+          ) : null}
         </div>
 
         <section className="fade-in delay-4 mt-6" aria-live="polite">
-          <div>
-            <button
-              type="button"
-              className="font-bold text-left"
-              aria-expanded={detailsOpen}
-              aria-controls="details-body"
-              onClick={() => setDetailsOpen((prev) => !prev)}
-            >
-              ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
-            </button>
-            <div
-              id="details-body"
-              ref={detailsBodyRef}
-              className="overflow-hidden transition-all duration-300 ease-out"
-              style={{ maxHeight: 0, opacity: 0 }}
-            >
-              <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
-                {detailsText}
-              </p>
-              {warningsText ? (
-                <div className="mt-4 text-[14px] leading-relaxed max-w-reading">
-                  {warningsText}
-                </div>
-              ) : null}
+          {status !== "off_season" && data.reason !== "no_data" ? (
+            <div>
+              <button
+                type="button"
+                className="font-bold text-left"
+                aria-expanded={detailsOpen}
+                aria-controls="details-body"
+                onClick={() => setDetailsOpen((prev) => !prev)}
+              >
+                ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
+              </button>
+              <div
+                id="details-body"
+                ref={detailsBodyRef}
+                className="overflow-hidden transition-all duration-300 ease-out"
+                style={{ maxHeight: 0, opacity: 0 }}
+              >
+                <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
+                  {detailsText}
+                </p>
+                {warningsText ? (
+                  <div className="mt-4 text-[14px] leading-relaxed max-w-reading">
+                    {warningsText}
+                  </div>
+                ) : null}
+              </div>
             </div>
-          </div>
-          <div className="mt-3 text-[12px] opacity-70 lg:flex lg:items-center lg:justify-between">
+          ) : null}
+          <div
+            className={[
+              "mt-10 text-[12px] lg:flex lg:items-center lg:justify-between opacity-55",
+              displayStatus === "ready" ? "text-black" : "",
+              displayStatus === "caution" ? "text-statusYellow" : "",
+              displayStatus === "not_ready" ? "text-white" : "",
+              displayStatus === "off_season" ? "text-slate-900" : "",
+            ].join(" ")}
+          >
             <div className="lg:flex-1 lg:text-left">
               {content.updatedLabel} {lastUpdated} — Source:{" "}
               <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">

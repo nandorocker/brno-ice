@@ -15,7 +15,8 @@ export type DebugOverrides = {
   hasData: boolean;
   skatingAllowed: boolean;
   warnings: boolean;
-  statusOverride: StatusKind | "auto";
+  statusOverride: StatusKind | "auto" | "no_data";
+  seasonOverride: "auto" | "winter" | "spring" | "summer" | "autumn";
   measurementDate: string | null;
   thicknessRange: string | null;
   detailsCzLines: string[];

@@ -16,6 +16,6 @@ export async function GET() {
     reason: data.reason,
     detailsCzLines: data.detailsCzLines,
     detailsEnLines: data.detailsEnLines,
-    debug: DEBUG_MODE ? { enabled: getDebugState().enabled } : undefined,
+    debug: DEBUG_MODE ? { enabled: getDebugState().enabled, seasonOverride: getDebugState().overrides.seasonOverride } : undefined,
   });
 }

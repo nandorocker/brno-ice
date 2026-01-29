@@ -14,6 +14,21 @@
 }
 
 @layer components {
+  .bg-season-winter {
+    background: linear-gradient(180deg, #0b2a4a 0%, #1f4a6a 55%, #3f7ea6 100%);
+  }
+
+  .bg-season-spring {
+    background: linear-gradient(180deg, #1f7a4c 0%, #3aa66d 55%, #f2c9d6 100%);
+  }
+
+  .bg-season-summer {
+    background: linear-gradient(180deg, #0b6ea8 0%, #33b1c4 55%, #f9d77e 100%);
+  }
+
+  .bg-season-autumn {
+    background: linear-gradient(180deg, #7a3a1b 0%, #c26a2b 55%, #f3b45b 100%);
+  }
   .page-enter {
     opacity: 0;
     transform: translateY(8px);

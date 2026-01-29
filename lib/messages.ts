@@ -13,7 +13,7 @@ function getSeasonKey(): SeasonKey {
   return "autumn";
 }
 
-export function pickMessage(status: StatusKind, lang: Lang, reason?: string) {
+export function pickMessage(status: StatusKind, lang: Lang, reason?: string, seasonOverride?: SeasonKey | "auto") {
   const noData = {
     cs: ["Ehm, měla by tu být data, ale nejsou. Zkus to za chvíli znovu? 😅"],
     en: ["Uh oh, there should be data here but there isn't. Try again in a bit? 😅"],
@@ -114,7 +114,7 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string) {
 
   let pool: string[] = [];
   if (status === "off_season") {
-    const season = getSeasonKey();
+    const season = seasonOverride && seasonOverride !== "auto" ? seasonOverride : getSeasonKey();
     pool = messages.off_season[lang][season] || [];
   } else {
     pool = messages[status][lang] || [];

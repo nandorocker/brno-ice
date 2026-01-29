@@ -10,6 +10,7 @@ const EMPTY: DebugState = {
     skatingAllowed: true,
     warnings: false,
     statusOverride: "ready",
+    seasonOverride: "auto",
     measurementDate: null,
     thicknessRange: null,
     detailsCzLines: [],
@@ -68,7 +69,7 @@ export default function DebugPage() {
   const setStatusOverride = (value: DebugState["overrides"]["statusOverride"]) => {
     const overrides: Partial<DebugState["overrides"]> = {
       statusOverride: value,
-      hasData: value !== "off_season",
+      hasData: value !== "off_season" && value !== "no_data",
       skatingAllowed: value === "ready" || value === "caution",
       warnings: value === "caution",
     };
@@ -116,19 +117,34 @@ export default function DebugPage() {
           </div>
           <div>
             <label className={labelClass}>Status override</label>
-          <select
-            className={inputClass}
-            value={state.overrides.statusOverride}
-            onChange={(e) => setStatusOverride(e.target.value as DebugState["overrides"]["statusOverride"])}
-          >
-            {state.overrides.statusOverride === "auto" ? (
-              <option value="auto">Auto (from data)</option>
-            ) : null}
-            <option value="ready">Ready (green)</option>
-            <option value="caution">Warning / Risky (yellow)</option>
-            <option value="not_ready">Not allowed (red)</option>
-            <option value="off_season">Off season (neutral)</option>
-          </select>
+            <select
+              className={inputClass}
+              value={state.overrides.statusOverride}
+              onChange={(e) => setStatusOverride(e.target.value as DebugState["overrides"]["statusOverride"])}
+            >
+              {state.overrides.statusOverride === "auto" ? (
+                <option value="auto">Auto (from data)</option>
+              ) : null}
+              <option value="ready">Ready (green)</option>
+              <option value="caution">Warning / Risky (yellow)</option>
+              <option value="not_ready">Not allowed (red)</option>
+              <option value="off_season">Off season (neutral)</option>
+              <option value="no_data">No data / Error</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Season override</label>
+            <select
+              className={inputClass}
+              value={state.overrides.seasonOverride}
+              onChange={(e) => update({ overrides: { seasonOverride: e.target.value as DebugState["overrides"]["seasonOverride"] } })}
+            >
+              <option value="auto">Auto (current season)</option>
+              <option value="winter">Winter</option>
+              <option value="spring">Spring</option>
+              <option value="summer">Summer</option>
+              <option value="autumn">Autumn</option>
+            </select>
           </div>
         </section>
 
