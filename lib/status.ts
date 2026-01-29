@@ -3,7 +3,7 @@ import * as cheerio from "cheerio";
 import iconv from "iconv-lite";
 import { DebugOverrides, DebugState, StatusData, StatusKind } from "@/lib/types";
 
-const SOURCE_URL = "https://www.prygl.net/";
+const SOURCE_URL = "https://www.prygl.net/php/stav-ledu.php";
 const STALE_DAYS = Number(process.env.STALE_DAYS || 7);
 const MIN_SAFE_CM = Number(process.env.MIN_SAFE_CM || 12);
 const DEBUG_MODE = process.env.DEBUG_MODE === "1";
@@ -39,43 +39,116 @@ function normalizeLine(line: string) {
 }
 
 function extractSectionLines($: cheerio.CheerioAPI) {
-  const heading = $("h1,h2,h3,h4")
-    .filter((_, el) => $(el).text().toLowerCase().includes("stav ledu na přehradě"))
+  let detailUrl: string | null = null;
+  const lines: string[] = [];
+
+  const dataItem = $("li")
+    .filter((_, el) => $(el).text().toLowerCase().includes("data ze dne"))
     .first();
 
-  if (!heading.length) return [];
+  if (dataItem.length) {
+    const href = dataItem.find("a").attr("href");
+    if (href) {
+      try {
+        detailUrl = new URL(href, SOURCE_URL).toString();
+      } catch {
+        detailUrl = null;
+      }
+    }
 
-  const lines: string[] = [];
-  let node = heading.next();
-  while (node && node.length) {
-    if (node.is("h1,h2,h3,h4")) break;
-
-    const html = node.html();
+    const container = dataItem.closest("ul,ol,section,article,div").first();
+    const base = container && container.length ? container : dataItem.parent();
+    const html = base.html();
     if (html) {
       const withBreaks = html.replace(/<br\s*\/?\s*>/gi, "\n");
       const text = cheerio.load(`<div>${withBreaks}</div>`)("div").text();
-      text
+      const allLines = text
         .split("\n")
         .map(normalizeLine)
-        .filter(Boolean)
-        .forEach((line) => lines.push(line));
+        .filter(Boolean);
+
+      let capturing = false;
+      for (const line of allLines) {
+        const isHeader = /data ze dne/i.test(line);
+        if (isHeader && lines.length > 0) break;
+        if (isHeader) capturing = true;
+        if (capturing) lines.push(line);
+      }
     }
-    node = node.next();
+
+    if (lines.length) {
+      return { lines, detailUrl };
+    }
+  }
+
+  const candidates = [
+    $("article").first(),
+    $("#content").first(),
+    $(".content").first(),
+    $("#main").first(),
+    $(".main").first(),
+  ];
+  let root = $("body");
+  for (const candidate of candidates) {
+    if (candidate && candidate.length) {
+      root = candidate;
+      break;
+    }
+  }
+  const rawLines: string[] = [];
+
+  root.find("li, p, div, td").each((_, el) => {
+    const text = normalizeLine($(el).text());
+    if (text) rawLines.push(text);
+  });
+
+  let capturing = false;
+  for (const line of rawLines) {
+    const isHeader = /data ze dne/i.test(line);
+    if (isHeader && lines.length > 0) break;
+    if (isHeader) capturing = true;
+    if (capturing) lines.push(line);
   }
 
   if (!lines.length) {
-    const fallback = heading.parent().text();
-    fallback
-      .split("\n")
-      .map(normalizeLine)
-      .filter(Boolean)
-      .forEach((line) => lines.push(line));
+    const heading = $("h1,h2,h3,h4")
+      .filter((_, el) => $(el).text().toLowerCase().includes("stav ledu"))
+      .first();
+    if (heading.length) {
+      const fallback = normalizeLine(heading.parent().text());
+      if (fallback) lines.push(fallback);
+    }
   }
 
-  return lines.filter((line) => !line.toLowerCase().includes("stav ledu na přehradě"));
+  return { lines, detailUrl };
+}
+
+function extractDetailLines($: cheerio.CheerioAPI) {
+  const lines: string[] = [];
+
+  $("p, li").each((_, el) => {
+    const text = normalizeLine($(el).text());
+    if (text) lines.push(text);
+  });
+
+  if (!lines.length) {
+    const bodyText = normalizeLine($("body").text());
+    if (bodyText) lines.push(bodyText);
+  }
+
+  const seen = new Set<string>();
+  return lines.filter((line) => {
+    const lower = line.toLowerCase();
+    if (!line || lower === "stav ledu") return false;
+    if (seen.has(line)) return false;
+    seen.add(line);
+    return true;
+  });
 }
 
 function parseMeasurementDate(text: string) {
+  const alt = text.match(/data ze dne\s*:?\s*([0-9]{1,2}\.\s*[0-9]{1,2}\.\s*[0-9]{4})/i);
+  if (alt) return alt[1].replace(/\s+/g, " ").trim();
   const match = text.match(/dne\s*:?\s*([0-9]{1,2}\.\s*[0-9]{1,2}\.\s*[0-9]{4})/i);
   if (match) return match[1].replace(/\s+/g, " ").trim();
   const fallback = text.match(/([0-9]{1,2}\.\s*[0-9]{1,2}\.\s*[0-9]{4})/);
@@ -83,9 +156,9 @@ function parseMeasurementDate(text: string) {
 }
 
 function parseThicknessRange(text: string) {
-  const match = text.match(/Tloušťka ledu\s*[:\-]?\s*([0-9]{1,2}(?:\s*-\s*[0-9]{1,2})?)\s*cm/i);
+  const match = text.match(/Tloušťka ledu\s*[:\-]?\s*(?:cca|asi|okolo|až)?\s*([0-9]{1,2}(?:[,.][0-9])?(?:\s*-\s*[0-9]{1,2}(?:[,.][0-9])?)?)\s*cm/i);
   if (match) return match[1].replace(/\s+/g, " ").trim();
-  const fallback = text.match(/([0-9]{1,2}(?:\s*-\s*[0-9]{1,2})?)\s*cm/i);
+  const fallback = text.match(/([0-9]{1,2}(?:[,.][0-9])?(?:\s*-\s*[0-9]{1,2}(?:[,.][0-9])?)?)\s*cm/i);
   return fallback ? fallback[1].replace(/\s+/g, " ").trim() : null;
 }
 
@@ -205,12 +278,34 @@ async function scrapePrygl(): Promise<StatusData> {
   const html = iconv.decode(Buffer.from(response.data), "windows-1250");
   const $ = cheerio.load(html);
 
-  const lines = extractSectionLines($);
+  const { lines, detailUrl } = extractSectionLines($);
   const fullText = lines.join("\n");
 
-  const measurementDate = parseMeasurementDate(fullText);
-  const thicknessRange = parseThicknessRange(fullText);
-  const warnings = hasWarnings(fullText);
+  let measurementDate = parseMeasurementDate(fullText);
+  let thicknessRange = parseThicknessRange(fullText);
+  let warnings = hasWarnings(fullText);
+  let detailsLines = lines;
+
+  if (detailUrl && (!thicknessRange || detailsLines.length <= 1)) {
+    try {
+      const detailResponse = await axios.get(detailUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000,
+      });
+      const detailHtml = iconv.decode(Buffer.from(detailResponse.data), "windows-1250");
+      const detailDoc = cheerio.load(detailHtml);
+      const detailLines = extractDetailLines(detailDoc);
+      if (detailLines.length) {
+        detailsLines = detailLines;
+        const detailText = detailLines.join("\n");
+        measurementDate = measurementDate || parseMeasurementDate(detailText);
+        thicknessRange = thicknessRange || parseThicknessRange(detailText);
+        warnings = warnings || hasWarnings(detailText);
+      }
+    } catch {
+      // ignore detail fetch failures
+    }
+  }
 
   const { status, reason } = determineStatus({
     measurementDate,
@@ -222,8 +317,8 @@ async function scrapePrygl(): Promise<StatusData> {
     fetchedAt: new Date().toISOString(),
     measurementDate,
     thicknessRange,
-    detailsCzLines: lines,
-    detailsEnLines: translateLines(lines),
+    detailsCzLines: detailsLines,
+    detailsEnLines: translateLines(detailsLines),
     warnings,
     status,
     reason,
