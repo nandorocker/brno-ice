@@ -24,7 +24,7 @@ let cached: StatusData | null = null;
 let lastFetchMs = 0;
 
 let debugState: DebugState = {
-  enabled: false,
+  enabled: true,
   overrides: { ...DEFAULT_DEBUG_OVERRIDES },
 };
 
@@ -399,11 +399,11 @@ export function setDebugState(input: Partial<DebugState>) {
 }
 
 export function resetDebugState() {
-  debugState = { enabled: false, overrides: { ...DEFAULT_DEBUG_OVERRIDES } };
+  debugState = { enabled: true, overrides: { ...DEFAULT_DEBUG_OVERRIDES } };
 }
 
 export async function getStatus(force = false): Promise<StatusData> {
-  if (DEBUG_MODE && debugState.enabled) {
+  if (DEBUG_MODE) {
     return buildDebugData();
   }
 
