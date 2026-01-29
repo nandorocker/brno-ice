@@ -60,7 +60,7 @@ main {
 }
 
 .title {
-  font-size: 14px;
+  font-size: 16px;
   letter-spacing: 0.08em;
   font-family: var(--font-title), Helvetica, Arial, sans-serif;
   font-weight: 800;
@@ -70,7 +70,7 @@ main {
 }
 
 .status-message {
-  font-size: clamp(40px, 8vw, 120px);
+  font-size: clamp(40px, 8vw, 104px);
   font-weight: 800;
   margin: 18px 0 22px;
   line-height: 0.95;

@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import { Sora, Unbounded } from "next/font/google";
+import { Space_Grotesk, Baloo_2 } from "next/font/google";
 import "./globals.css";
 
-const bodyFont = Sora({
+const bodyFont = Space_Grotesk({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-body",
 });
 
-const titleFont = Unbounded({
+const titleFont = Baloo_2({
   subsets: ["latin"],
-  weight: ["500", "700", "800", "900"],
+  weight: ["700", "800"],
   variable: "--font-title",
 });
 
