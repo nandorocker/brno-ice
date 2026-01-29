@@ -1,0 +1,141 @@
+:root {
+  --green: #00c853;
+  --red: #ff1744;
+  --neutral: #78909c;
+  --text-light: #ffffff;
+  --text-dark: #000000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+}
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px 64px;
+  color: var(--text-light);
+  background: var(--neutral);
+}
+
+.page.status-ready {
+  background: var(--green);
+  color: var(--text-dark);
+}
+
+.page.status-not_ready {
+  background: var(--red);
+  color: var(--text-light);
+}
+
+.page.status-off_season {
+  background: var(--neutral);
+  color: var(--text-light);
+}
+
+main {
+  width: min(1000px, 100%);
+  text-align: center;
+}
+
+.title {
+  font-size: clamp(42px, 9vw, 140px);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-top: 10px;
+}
+
+.status-message {
+  font-size: clamp(28px, 4vw, 56px);
+  font-weight: 700;
+  margin: 16px 0 22px;
+  line-height: 1.1;
+}
+
+.data-points {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin: 8px 0 24px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.data-points span {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 12px;
+  display: block;
+  opacity: 0.75;
+  margin-bottom: 6px;
+}
+
+.details {
+  margin: 24px auto 0;
+  text-align: left;
+}
+
+.details h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.details-text {
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-line;
+  margin: 0;
+}
+
+.meta {
+  font-size: 12px;
+  margin-top: 14px;
+  opacity: 0.7;
+}
+
+.lang-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: inline-flex;
+  gap: 10px;
+}
+
+.lang-toggle button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.lang-toggle button.active {
+  opacity: 1;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .page { padding: 32px 16px 48px; }
+  .data-points { font-size: 16px; }
+  .details-text { font-size: 14px; }
+}
