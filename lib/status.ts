@@ -6,6 +6,7 @@ import { DebugOverrides, DebugState, StatusData, StatusKind } from "@/lib/types"
 const SOURCE_URL = "https://www.prygl.net/php/stav-ledu.php";
 const STALE_DAYS = Number(process.env.STALE_DAYS || 7);
 const MIN_SAFE_CM = Number(process.env.MIN_SAFE_CM || 12);
+const MIN_CAUTION_CM = Number(process.env.MIN_CAUTION_CM || 10);
 const DEBUG_MODE = process.env.DEBUG_MODE === "1";
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS || 12 * 60 * 60 * 1000);
 
@@ -164,7 +165,10 @@ function parseThicknessRange(text: string) {
 
 function parseMinThickness(range: string | null) {
   if (!range) return null;
-  const parts = range.split("-").map((p) => parseInt(p.trim(), 10));
+  const parts = range
+    .split("-")
+    .map((p) => parseFloat(p.replace(",", ".").trim()))
+    .filter((p) => !Number.isNaN(p));
   if (parts.some((p) => Number.isNaN(p))) return null;
   return Math.min(...parts);
 }
@@ -253,10 +257,6 @@ function determineStatus(input: {
     return { status: "off_season", reason: "stale" };
   }
 
-  if (input.warnings) {
-    return { status: "not_ready", reason: "warnings" };
-  }
-
   const minThickness = parseMinThickness(input.thicknessRange);
   if (minThickness === null) {
     return { status: "not_ready", reason: "unknown_thickness" };
@@ -264,6 +264,10 @@ function determineStatus(input: {
 
   if (minThickness >= MIN_SAFE_CM) {
     return { status: "ready", reason: "safe_thickness" };
+  }
+
+  if (minThickness >= MIN_CAUTION_CM) {
+    return { status: "caution", reason: "caution_thickness" };
   }
 
   return { status: "not_ready", reason: "too_thin" };
@@ -295,17 +299,17 @@ async function scrapePrygl(): Promise<StatusData> {
       const detailHtml = iconv.decode(Buffer.from(detailResponse.data), "windows-1250");
       const detailDoc = cheerio.load(detailHtml);
       const detailLines = extractDetailLines(detailDoc);
-      if (detailLines.length) {
-        detailsLines = detailLines;
-        const detailText = detailLines.join("\n");
-        measurementDate = measurementDate || parseMeasurementDate(detailText);
-        thicknessRange = thicknessRange || parseThicknessRange(detailText);
-        warnings = warnings || hasWarnings(detailText);
-      }
-    } catch {
-      // ignore detail fetch failures
+    if (detailLines.length) {
+      detailsLines = detailLines;
+      const detailText = detailLines.join("\n");
+      measurementDate = measurementDate || parseMeasurementDate(detailText);
+      thicknessRange = thicknessRange || parseThicknessRange(detailText);
+      warnings = warnings || hasWarnings(detailText);
     }
+  } catch {
+    // ignore detail fetch failures
   }
+}
 
   const { status, reason } = determineStatus({
     measurementDate,
@@ -337,11 +341,13 @@ function buildDebugData(): StatusData {
   let status: StatusKind = "off_season";
   let reason = "no_data";
   if (hasData) {
-    status = o.skatingAllowed ? "ready" : "not_ready";
-    reason = o.skatingAllowed ? "debug_allowed" : "debug_not_allowed";
-    if (warnings) {
-      status = "not_ready";
-      reason = "warnings";
+    if (thicknessRange) {
+      const derived = determineStatus({ measurementDate, thicknessRange, warnings });
+      status = derived.status;
+      reason = derived.reason;
+    } else {
+      status = o.skatingAllowed ? "ready" : "not_ready";
+      reason = o.skatingAllowed ? "debug_allowed" : "debug_not_allowed";
     }
   }
 

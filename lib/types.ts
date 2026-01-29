@@ -1,4 +1,4 @@
-export type StatusKind = "ready" | "not_ready" | "off_season";
+export type StatusKind = "ready" | "not_ready" | "caution" | "off_season";
 
 export type StatusData = {
   fetchedAt: string | null;

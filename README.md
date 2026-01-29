@@ -30,6 +30,7 @@ Open http://localhost:3000/debug to override status data.
 ## Configuration
 Environment variables:
 - `MIN_SAFE_CM` (default: 12)
+- `MIN_CAUTION_CM` (default: 10)
 - `STALE_DAYS` (default: 7)
 - `CACHE_TTL_MS` (default: 43200000)
 - `DEBUG_MODE=1` to enable the debug dashboard at `/debug`
