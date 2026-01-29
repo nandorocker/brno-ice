@@ -1,6 +1,6 @@
 :root {
   --green: #00c853;
-  --red: #ff1744;
+  --red: #dc2626;
   --neutral: #78909c;
   --text-light: #ffffff;
   --text-dark: #000000;
@@ -17,7 +17,7 @@ body {
 }
 
 body {
-  font-family: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body), Helvetica, Arial, sans-serif;
 }
 
 .page {
@@ -25,7 +25,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 20px 64px;
+  padding: 32px 24px 48px;
   color: var(--text-light);
   background: var(--neutral);
 }
@@ -46,41 +46,54 @@ body {
 }
 
 main {
-  width: min(1000px, 100%);
-  text-align: center;
+  width: 100%;
+  text-align: left;
+}
+
+@media (min-width: 1200px) {
+  main {
+    max-width: 1200px;
+  }
+  .status-message {
+    max-width: 18ch;
+  }
 }
 
 .title {
-  font-size: clamp(42px, 9vw, 140px);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  font-family: var(--font-title), Helvetica, Arial, sans-serif;
   font-weight: 800;
-  letter-spacing: 0.02em;
   text-transform: uppercase;
-  margin-top: 10px;
+  opacity: 0.8;
+  margin-top: 6px;
 }
 
 .status-message {
-  font-size: clamp(28px, 4vw, 56px);
-  font-weight: 700;
-  margin: 16px 0 22px;
-  line-height: 1.1;
+  font-size: clamp(40px, 8vw, 120px);
+  font-weight: 800;
+  margin: 18px 0 22px;
+  line-height: 0.95;
+  text-transform: uppercase;
+  font-family: var(--font-title), Helvetica, Arial, sans-serif;
 }
 
 .data-points {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 28px;
   flex-wrap: wrap;
   margin: 8px 0 24px;
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
 }
 
 .data-points span {
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 12px;
+  letter-spacing: 0.08em;
+  font-size: 14px;
   display: block;
-  opacity: 0.75;
+  opacity: 0.85;
   margin-bottom: 6px;
 }
 
@@ -102,6 +115,7 @@ main {
   line-height: 1.6;
   white-space: pre-line;
   margin: 0;
+  max-width: 72ch;
 }
 
 .meta {
@@ -135,7 +149,7 @@ main {
 }
 
 @media (max-width: 600px) {
-  .page { padding: 32px 16px 48px; }
+  .page { padding: 24px 16px 40px; }
   .data-points { font-size: 16px; }
   .details-text { font-size: 14px; }
 }

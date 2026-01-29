@@ -98,8 +98,14 @@ export default function Home() {
     setMessage(pickMessage(status, lang));
   }, [status, lang]);
 
-  const detailsText = (lang === "cs" ? data.detailsCzLines : data.detailsEnLines).join("\n") ||
-    (lang === "cs" ? "—" : "Not available");
+  const lines = lang === "cs" ? data.detailsCzLines : data.detailsEnLines;
+  const filteredLines = lines.filter((line) => {
+    if (lang === "cs") {
+      return !/^\s*(Data z měření ledu|Tloušťka ledu)/i.test(line);
+    }
+    return !/^\s*(Ice measurements by city police on|Ice thickness)/i.test(line);
+  });
+  const detailsText = filteredLines.join("\n") || (lang === "cs" ? "—" : "Not available");
 
   const lastUpdated = data.fetchedAt
     ? new Date(data.fetchedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague" })
