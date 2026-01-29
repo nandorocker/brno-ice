@@ -15,6 +15,7 @@ export type DebugOverrides = {
   hasData: boolean;
   skatingAllowed: boolean;
   warnings: boolean;
+  statusOverride: StatusKind | "auto";
   measurementDate: string | null;
   thicknessRange: string | null;
   detailsCzLines: string[];

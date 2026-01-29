@@ -14,17 +14,10 @@ const DEFAULT_DEBUG_OVERRIDES: DebugOverrides = {
   hasData: true,
   skatingAllowed: true,
   warnings: false,
+  statusOverride: "ready",
   measurementDate: null,
-  thicknessRange: "12-15",
-  detailsCzLines: [
-    "Data z měření ledu městskou policií dne: 15. 1. 2026",
-    "Tloušťka ledu: 12-15 cm",
-    "přístav Bystrc: 13 cm",
-    "Kozí horka: 12 cm",
-    "Sokol: 14 cm",
-    "Rokle: 12 cm",
-    "Vstup na zamrzlou hladinu přehrady je vždy jen na vlastní nebezpečí!",
-  ],
+  thicknessRange: null,
+  detailsCzLines: [],
 };
 
 let cached: StatusData | null = null;
@@ -331,24 +324,38 @@ async function scrapePrygl(): Promise<StatusData> {
 
 function buildDebugData(): StatusData {
   const o = debugState.overrides;
-  const detailsCzLines = Array.isArray(o.detailsCzLines) ? o.detailsCzLines : [];
+  const detailsCzLines = Array.isArray(o.detailsCzLines) ? [...o.detailsCzLines] : [];
   const fullText = detailsCzLines.join("\n");
   const measurementDate = o.measurementDate || parseMeasurementDate(fullText);
   const thicknessRange = o.thicknessRange || parseThicknessRange(fullText);
-  const warnings = Boolean(o.warnings);
+  let warnings = Boolean(o.warnings);
   const hasData = Boolean(o.hasData);
+  const statusOverride = o.statusOverride || "auto";
+  const warningLine = "Pozor: led je na hraně bezpečnosti. Vstup jen na vlastní nebezpečí.";
 
   let status: StatusKind = "off_season";
   let reason = "no_data";
-  if (hasData) {
-    if (thicknessRange) {
-      const derived = determineStatus({ measurementDate, thicknessRange, warnings });
-      status = derived.status;
-      reason = derived.reason;
-    } else {
-      status = o.skatingAllowed ? "ready" : "not_ready";
-      reason = o.skatingAllowed ? "debug_allowed" : "debug_not_allowed";
-    }
+  if (statusOverride !== "auto") {
+    status = statusOverride;
+    reason = "debug_override";
+    if (statusOverride === "caution") warnings = true;
+  } else if (!hasData) {
+    status = "off_season";
+    reason = "no_data";
+  } else if (!o.skatingAllowed) {
+    status = "not_ready";
+    reason = "debug_not_allowed";
+  } else if (warnings) {
+    status = "caution";
+    reason = "debug_warning";
+  } else {
+    status = "ready";
+    reason = "debug_allowed";
+  }
+
+  if (statusOverride === "caution") {
+    const hasWarningLine = detailsCzLines.some((line) => /pozor|nebezpe/i.test(line));
+    if (!hasWarningLine) detailsCzLines.push(warningLine);
   }
 
   return {
@@ -369,6 +376,9 @@ export function sanitizeDebugOverrides(input: Partial<DebugOverrides> | null) {
   if (typeof input.hasData === "boolean") out.hasData = input.hasData;
   if (typeof input.skatingAllowed === "boolean") out.skatingAllowed = input.skatingAllowed;
   if (typeof input.warnings === "boolean") out.warnings = input.warnings;
+  if (input.statusOverride === "auto" || input.statusOverride === "ready" || input.statusOverride === "not_ready" || input.statusOverride === "caution" || input.statusOverride === "off_season") {
+    out.statusOverride = input.statusOverride;
+  }
   if (typeof input.measurementDate === "string") out.measurementDate = input.measurementDate.trim() || null;
   if (typeof input.thicknessRange === "string") out.thicknessRange = input.thicknessRange.trim() || null;
   if (Array.isArray(input.detailsCzLines)) {

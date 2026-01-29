@@ -24,6 +24,8 @@ const TEXT = {
     thicknessLabel: "Tloušťka ledu",
     dateLabel: "Datum měření",
     updatedLabel: "Aktualizováno:",
+    footer: "Vstup na zamrzlou hladinu je vždy na vlastní nebezpečí.",
+    madeBy: "Vyrobeno nandorockerem se skates & láskou.",
   },
   en: {
     title: "Can I skate the Prygl?",
@@ -31,6 +33,8 @@ const TEXT = {
     thicknessLabel: "Ice thickness",
     dateLabel: "Report date",
     updatedLabel: "Last updated:",
+    footer: "Skating is always at your own risk.",
+    madeBy: "Made by nandorocker with skates & love.",
   },
 };
 
@@ -49,9 +53,6 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsBodyRef = useRef<HTMLDivElement | null>(null);
-  const detailsBoxRef = useRef<HTMLDivElement | null>(null);
-  const detailsTextRef = useRef<HTMLSpanElement | null>(null);
-  const detailsArrowRef = useRef<HTMLSpanElement | null>(null);
 
   const status: StatusKind = data.status || "off_season";
 
@@ -137,30 +138,6 @@ export default function Home() {
     }
   }, [detailsOpen, detailsText, warningsText]);
 
-  useEffect(() => {
-    const box = detailsBoxRef.current;
-    const textEl = detailsTextRef.current;
-    const arrowEl = detailsArrowRef.current;
-    if (!box || !textEl || !arrowEl) return;
-
-    const applyWidth = () => {
-      if (detailsOpen) {
-        box.style.width = "min(100%, 80ch)";
-      } else {
-        const textWidth = textEl.offsetWidth;
-        const arrowWidth = arrowEl.offsetWidth;
-        const gap = 12;
-        const padding = 64;
-        const target = Math.ceil(textWidth + arrowWidth + gap + padding);
-        box.style.width = `${target}px`;
-      }
-    };
-
-    applyWidth();
-    window.addEventListener("resize", applyWidth);
-    return () => window.removeEventListener("resize", applyWidth);
-  }, [detailsOpen, content.detailsTitle]);
-
   const lastUpdated = data.fetchedAt
     ? new Date(data.fetchedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague" })
     : "—";
@@ -202,15 +179,15 @@ export default function Home() {
           {message}
         </div>
 
-        <div className="fade-in delay-3 mt-2 flex flex-wrap items-start gap-7 pl-4 text-[28px] font-bold">
+        <div className="fade-in delay-3 mt-2 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
           <div>
-            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-85 mb-1">
+            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-85">
               {content.thicknessLabel}
             </span>
             <div>{formatThickness(data.thicknessRange)}</div>
           </div>
           <div>
-            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-85 mb-1">
+            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-85">
               {content.dateLabel}
             </span>
             <div>{formatDate(data.measurementDate)}</div>
@@ -218,25 +195,20 @@ export default function Home() {
         </div>
 
         <section className="fade-in delay-4 mt-6" aria-live="polite">
-          <div className="inline-block max-w-details border-[4px] border-black rounded-2xl" ref={detailsBoxRef}>
+          <div>
             <button
               type="button"
-              className="relative inline-flex w-full items-center gap-3 px-4 pt-3 text-[14px] tracking-[0.12em] uppercase font-bold whitespace-nowrap leading-none"
+              className="font-bold text-left"
               aria-expanded={detailsOpen}
               aria-controls="details-body"
               onClick={() => setDetailsOpen((prev) => !prev)}
             >
-              <span className="translate-y-[1px]" ref={detailsTextRef}>
-                {content.detailsTitle}
-              </span>
-              <span className="absolute right-3 top- text-[24px]" ref={detailsArrowRef}>
-                {detailsOpen ? "▴" : "▾"}
-              </span>
+              ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
             </button>
             <div
               id="details-body"
               ref={detailsBodyRef}
-              className="overflow-hidden px-4 pb-4 transition-[max-height,opacity] duration-300 ease-out"
+              className="overflow-hidden transition-all duration-300 ease-out"
               style={{ maxHeight: 0, opacity: 0 }}
             >
               <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
@@ -249,8 +221,22 @@ export default function Home() {
               ) : null}
             </div>
           </div>
-          <div className="pl-4 mt-3 text-[12px] opacity-70">
-            {content.updatedLabel} {lastUpdated}
+          <div className="mt-3 text-[12px] opacity-70 lg:flex lg:items-center lg:justify-between">
+            <div className="lg:flex-1 lg:text-left">
+              {content.updatedLabel} {lastUpdated} — Source:{" "}
+              <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
+                prygl.net
+              </a>
+            </div>
+            <div className="lg:flex-1 lg:text-center">
+              {content.madeBy}{" "}
+              <a className="underline" href="https://nan.do" target="_blank" rel="noreferrer">
+                nan.do
+              </a>
+            </div>
+            <div className="lg:flex-1 lg:text-right">
+              {content.footer}
+            </div>
           </div>
         </section>
       </main>
