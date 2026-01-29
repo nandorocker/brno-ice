@@ -192,7 +192,7 @@ export default function Home() {
 
       <main className="w-full text-left lg:max-w-[1200px]">
         <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] uppercase font-title font-extrabold">
-          <span className="opacity-55">{content.title}</span>
+          <span className="opacity-65">{content.title}</span>
         </div>
         <div
           className={[
@@ -205,7 +205,7 @@ export default function Home() {
 
         <div className="fade-in delay-3 mt-8 md:mt-4 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
           <div>
-            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-55">
+            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
               {content.thicknessLabel}
             </span>
             <div>
@@ -214,7 +214,7 @@ export default function Home() {
           </div>
           {displayStatus !== "off_season" ? (
             <div>
-              <span className="block text-[14px] tracking-[0.08em] uppercase opacity-55">
+              <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
                 {content.dateLabel}
               </span>
               <div>{formatDate(data.measurementDate)}</div>
@@ -253,7 +253,7 @@ export default function Home() {
           ) : null}
           <div
             className={[
-              "mt-10 text-[12px] lg:flex lg:items-center lg:justify-between opacity-55",
+              "mt-10 text-[12px] lg:flex lg:items-center lg:justify-between opacity-65",
               displayStatus === "ready" ? "text-black" : "",
               displayStatus === "caution" ? "text-statusYellow" : "",
               displayStatus === "not_ready" ? "text-white" : "",
