@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { DebugState, StatusData } from "@/lib/types";
+import type { DebugState } from "@/lib/types";
 
 const EMPTY: DebugState = {
   enabled: false,
@@ -20,7 +20,6 @@ export default function DebugPage() {
   const [state, setState] = useState<DebugState>(EMPTY);
   const [available, setAvailable] = useState(true);
   const [initial, setInitial] = useState<DebugState | null>(null);
-  const [liveStatus, setLiveStatus] = useState<StatusData | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -31,33 +30,9 @@ export default function DebugPage() {
       }
       const debugJson = await debugRes.json();
 
-      let statusJson: StatusData | null = null;
-      const statusRes = await fetch("/api/status", { cache: "no-store" }).catch(() => null);
-      if (statusRes && statusRes.ok) {
-        statusJson = await statusRes.json();
-        setLiveStatus(statusJson);
-      }
-
-      let next = debugJson as DebugState;
-      if (statusJson) {
-        const details = Array.isArray(next.overrides.detailsCzLines) ? next.overrides.detailsCzLines : [];
-        if (!details.length && Array.isArray(statusJson.detailsCzLines) && statusJson.detailsCzLines.length) {
-          next = {
-            ...next,
-            overrides: {
-              ...next.overrides,
-              detailsCzLines: statusJson.detailsCzLines,
-              measurementDate: next.overrides.measurementDate ?? statusJson.measurementDate ?? null,
-              thicknessRange: next.overrides.thicknessRange ?? statusJson.thicknessRange ?? null,
-            },
-          };
-        }
-      }
-
-      const initialState = next;
-      const displayState = initialState.enabled ? initialState : { ...initialState, enabled: true };
-      setState(displayState);
-      setInitial(initialState);
+      const next = debugJson as DebugState;
+      setState(next);
+      setInitial(next);
     };
     load();
   }, []);
@@ -97,7 +72,7 @@ export default function DebugPage() {
       skatingAllowed: value === "ready" || value === "caution",
       warnings: value === "caution",
     };
-    update({ enabled: true, overrides });
+    update({ overrides });
   };
 
   const apply = async () => {
@@ -113,25 +88,9 @@ export default function DebugPage() {
     const res = await fetch("/api/debug/reset", { method: "POST" });
     if (res.ok) {
       const json = await res.json();
-      let next = (json.debugState || EMPTY) as DebugState;
-      if (liveStatus) {
-        const details = Array.isArray(next.overrides.detailsCzLines) ? next.overrides.detailsCzLines : [];
-        if (!details.length && Array.isArray(liveStatus.detailsCzLines) && liveStatus.detailsCzLines.length) {
-          next = {
-            ...next,
-            overrides: {
-              ...next.overrides,
-              detailsCzLines: liveStatus.detailsCzLines,
-              measurementDate: next.overrides.measurementDate ?? liveStatus.measurementDate ?? null,
-              thicknessRange: next.overrides.thicknessRange ?? liveStatus.thicknessRange ?? null,
-            },
-          };
-        }
-      }
-      const initialState = next;
-      const displayState = initialState.enabled ? initialState : { ...initialState, enabled: true };
-      setState(displayState);
-      setInitial(initialState);
+      const next = (json.debugState || EMPTY) as DebugState;
+      setState(next);
+      setInitial(next);
     }
   };
 
@@ -143,18 +102,34 @@ export default function DebugPage() {
           <p className="text-sm text-slate-400">Override the live scraper with mock data and force UI states.</p>
         </header>
 
-        <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-          <label className={labelClass}>Status override</label>
+        <section className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 sm:grid-cols-2">
+          <div>
+            <label className={labelClass}>Debug mode</label>
+            <select
+              className={inputClass}
+              value={String(state.enabled)}
+              onChange={(e) => update({ enabled: e.target.value === "true" })}
+            >
+              <option value="true">Enabled</option>
+              <option value="false">Disabled</option>
+            </select>
+          </div>
+          <div>
+            <label className={labelClass}>Status override</label>
           <select
             className={inputClass}
             value={state.overrides.statusOverride}
             onChange={(e) => setStatusOverride(e.target.value as DebugState["overrides"]["statusOverride"])}
           >
+            {state.overrides.statusOverride === "auto" ? (
+              <option value="auto">Auto (from data)</option>
+            ) : null}
             <option value="ready">Ready (green)</option>
             <option value="caution">Warning / Risky (yellow)</option>
             <option value="not_ready">Not allowed (red)</option>
             <option value="off_season">Off season (neutral)</option>
           </select>
+          </div>
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-slate-800 bg-slate-900/40 p-6 sm:grid-cols-2">

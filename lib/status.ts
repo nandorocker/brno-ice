@@ -28,6 +28,50 @@ let debugState: DebugState = {
   overrides: { ...DEFAULT_DEBUG_OVERRIDES },
 };
 
+const DEBUG_EXAMPLES: Record<
+  StatusKind,
+  Omit<StatusData, "fetchedAt" | "detailsEnLines" | "reason" | "status"> & { warnings: boolean }
+> = {
+  ready: {
+    measurementDate: "26. 1. 2026",
+    thicknessRange: "12-15",
+    detailsCzLines: [
+      "Data z měření ledu městskou policií dne: 26. 1. 2026",
+      "Tloušťka ledu: 12-15 cm",
+      "přístav Bystrc: 13 cm",
+      "Kozí horka: 12 cm",
+      "Sokol: 14 cm",
+    ],
+    warnings: false,
+  },
+  caution: {
+    measurementDate: "26. 1. 2026",
+    thicknessRange: "10-11",
+    detailsCzLines: [
+      "Data z měření ledu městskou policií dne: 26. 1. 2026",
+      "Tloušťka ledu: 10-11 cm",
+      "Pozor: led je na hraně bezpečnosti. Vstup jen na vlastní nebezpečí.",
+    ],
+    warnings: true,
+  },
+  not_ready: {
+    measurementDate: "26. 1. 2026",
+    thicknessRange: "6-8",
+    detailsCzLines: [
+      "Data z měření ledu městskou policií dne: 26. 1. 2026",
+      "Tloušťka ledu: 6-8 cm",
+      "Led je příliš tenký, vstup se nedoporučuje.",
+    ],
+    warnings: false,
+  },
+  off_season: {
+    measurementDate: null,
+    thicknessRange: null,
+    detailsCzLines: ["Měření ledu se nyní neprovádí."],
+    warnings: false,
+  },
+};
+
 function normalizeLine(line: string) {
   return line.replace(/\s+/g, " ").trim();
 }
@@ -326,11 +370,12 @@ function buildDebugData(): StatusData {
   const o = debugState.overrides;
   const detailsCzLines = Array.isArray(o.detailsCzLines) ? [...o.detailsCzLines] : [];
   const fullText = detailsCzLines.join("\n");
-  const measurementDate = o.measurementDate || parseMeasurementDate(fullText);
-  const thicknessRange = o.thicknessRange || parseThicknessRange(fullText);
+  const statusOverride = (o.statusOverride || "auto") as StatusKind | "auto";
+  const example = statusOverride !== "auto" ? DEBUG_EXAMPLES[statusOverride] : null;
+  const measurementDate = o.measurementDate || parseMeasurementDate(fullText) || example?.measurementDate || null;
+  const thicknessRange = o.thicknessRange || parseThicknessRange(fullText) || example?.thicknessRange || null;
   let warnings = Boolean(o.warnings);
   const hasData = Boolean(o.hasData);
-  const statusOverride = o.statusOverride || "auto";
   const warningLine = "Pozor: led je na hraně bezpečnosti. Vstup jen na vlastní nebezpečí.";
 
   let status: StatusKind = "off_season";
@@ -353,17 +398,20 @@ function buildDebugData(): StatusData {
     reason = "debug_allowed";
   }
 
+  const resolvedDetails = detailsCzLines.length ? detailsCzLines : example?.detailsCzLines || [];
+
   if (statusOverride === "caution") {
-    const hasWarningLine = detailsCzLines.some((line) => /pozor|nebezpe/i.test(line));
-    if (!hasWarningLine) detailsCzLines.push(warningLine);
+    warnings = true;
+    const hasWarningLine = resolvedDetails.some((line) => /pozor|nebezpe/i.test(line));
+    if (!hasWarningLine) resolvedDetails.push(warningLine);
   }
 
   return {
     fetchedAt: new Date().toISOString(),
     measurementDate: measurementDate || null,
     thicknessRange: thicknessRange || null,
-    detailsCzLines,
-    detailsEnLines: translateLines(detailsCzLines),
+    detailsCzLines: resolvedDetails,
+    detailsEnLines: translateLines(resolvedDetails),
     warnings,
     status,
     reason,
@@ -403,7 +451,7 @@ export function resetDebugState() {
 }
 
 export async function getStatus(force = false): Promise<StatusData> {
-  if (DEBUG_MODE) {
+  if (DEBUG_MODE && debugState.enabled) {
     return buildDebugData();
   }
 

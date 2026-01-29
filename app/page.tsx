@@ -150,7 +150,7 @@ export default function Home() {
         ready ? "is-ready" : "",
         status === "ready" ? "bg-statusGreen text-black" : "",
         status === "not_ready" ? "bg-statusRed text-white" : "",
-        status === "caution" ? "bg-statusYellow text-black" : "",
+        status === "caution" ? "bg-slate-900 text-statusYellow" : "",
         status === "off_season" ? "bg-statusNeutral text-white" : "",
       ].join(" ")}
     >
