@@ -203,14 +203,14 @@ export default function Home() {
         </div>
         <div
           className={[
-            "fade-in delay-2 mt-2 text-[clamp(44px,9vw,112px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[18ch]",
+            "fade-in delay-2 mt-2 text-[clamp(44px,8vw,100px)] md:text-[clamp(52px,7.8vw,102px)] lg:text-[clamp(38px,5.5vw,76px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[24ch] whitespace-pre-line",
             displayStatus === "off_season" ? "text-white" : "",
           ].join(" ")}
         >
           {message}
         </div>
 
-        <div className="fade-in delay-3 mt-8 md:mt-10 lg:mt-8 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
+        <div className="fade-in delay-3 mt-12 md:mt-14 lg:mt-16 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
           <div>
             <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
               {content.thicknessLabel}
@@ -229,7 +229,7 @@ export default function Home() {
           ) : null}
         </div>
 
-        <section className="fade-in delay-4 mt-6" aria-live="polite">
+        <section className="fade-in delay-4 mt-10" aria-live="polite">
           {status !== "off_season" && data.reason !== "no_data" ? (
             <div>
               <button

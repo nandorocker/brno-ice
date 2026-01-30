@@ -15,8 +15,8 @@ function getSeasonKey(): SeasonKey {
 
 export function pickMessage(status: StatusKind, lang: Lang, reason?: string, seasonOverride?: SeasonKey | "auto") {
   const noData = {
-    cs: ["Ehm, měla by tu být data, ale nejsou. Zkus to za chvíli znovu? 😅"],
-    en: ["Uh oh, there should be data here but there isn't. Try again in a bit? 😅"],
+    cs: ["Ehm, měla by tu být data,\nale nejsou. Zkus to za chvíli znovu? 😅"],
+    en: ["Uh oh, there should be data here,\nbut there isn't. Try again in a bit? 😅"],
   } as const;
 
   if (reason === "no_data") {
@@ -26,58 +26,58 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
   const messages = {
     ready: {
       cs: [
-        "Jasně že jo! Led drží 🎉",
-        "Ano. Hurá na Prygl - led je připravený ⛸️",
-        "Brusle v ruce a vyraz z Bystrce - led dobrý! ✨",
-        "Jo, od Přístaviště až ke Kozí Horce to drží ❄️",
-        "Bezva podmínky - frčíme na led! 🧊",
-        "Ale jó! Je to tam jako beton ⛸️",
-        "Led je ready, tak proč se ještě díváš na monitor? Vypadni ven 😏",
-        "No jasně. Led drží líp než Šalina na Rooseveltově ⛸️",
+        "Jasně že jo!\nLed drží 🎉",
+        "Ano.\nHurá na Prygl - led je připravený ⛸️",
+        "Brusle v ruce a vyraz z Bystrce -\nled dobrý! ✨",
+        "Jo, od Přístaviště až ke Kozí Horce -\nto drží ❄️",
+        "Bezva podmínky -\nfrčíme na led! 🧊",
+        "Ale jó!\nJe to tam jako beton ⛸️",
+        "Led je ready,\ntak proč se ještě díváš na monitor?\nVypadni ven 😏",
+        "No jasně.\nLed drží líp než Šalina na Rooseveltově ⛸️",
       ],
       en: [
-        "Hell yeah! The ice is solid 🎉",
-        "Yes. Perfect conditions - the ice is ready ⛸️",
-        "Grab your skates and head out from Bystrc - ice is good! ✨",
-        "Yep, from Přístaviště all the way to Kozí Horka ❄️",
-        "Great conditions - let's go! 🧊",
-        "Absolutely! It's solid as concrete ⛸️",
-        "Ice is ready, so why are you still staring at your screen? Get out there 😏",
-        "Of course. Ice holds better than the tram on Rooseveltova ⛸️",
+        "Hell yeah!\nThe ice is solid 🎉",
+        "Yes.\nPerfect conditions - the ice is ready ⛸️",
+        "Grab your skates and head out from Bystrc -\nice is good! ✨",
+        "Yep, from Přístaviště all the way to Kozí Horka -\nit holds ❄️",
+        "Great conditions -\nlet's go! 🧊",
+        "Absolutely!\nIt's solid as concrete ⛸️",
+        "Ice is ready,\nso why are you still staring at your screen?\nGet out there 😏",
+        "Of course.\nIce holds better than the tram on Rooseveltova ⛸️",
       ],
     },
     not_ready: {
       cs: [
-        "Ještě ne - led je moc tenký 🚫",
-        "Né. Nechoď tam, není to bezpečný. Radši na Starobrno do Sokoláku ⚠️",
-        "Led je slabý, počkej na pořádný mráz ❌",
-        "Zatím ne - potřebuje to ještě pár dní mrazu 🧊",
-        "Nestojí to za to, led není dost tlustý ⚠️",
-        "Zůstaň doma, na Pryglu to ještě nedrží 🚫",
-        "Ne. A ne, nejsi výjimka. Prostě počkej 🙄",
-        "Led slabší než wifi na Hlaváku. To nechceš 📵",
+        "Ještě ne -\nled je moc tenký 🚫",
+        "Né.\nNechoď tam, není to bezpečný.\nRadši na Starobrno do Sokoláku ⚠️",
+        "Led je slabý,\npočkej na pořádný mráz ❌",
+        "Zatím ne -\npotřebuje to ještě pár dní mrazu 🧊",
+        "Nestojí to za to,\nled není dost tlustý ⚠️",
+        "Zůstaň doma,\nna Pryglu to ještě nedrží 🚫",
+        "Ne.\nA ne, nejsi výjimka.\nProstě počkej 🙄",
+        "Led slabší než wifi na Hlaváku.\nTo nechceš 📵",
       ],
       en: [
-        "Not yet - the ice is too thin 🚫",
-        "Nope. Don't go - it's not safe. Better grab a Starobrno at Sokol instead ⚠️",
-        "Ice is weak, wait for a proper freeze ❌",
-        "Not yet - needs a few more cold days 🧊",
-        "Not worth the risk - ice isn't thick enough ⚠️",
-        "Stay home - the Prygl won't hold yet 🚫",
-        "No. And no, you're not the exception. Just wait 🙄",
-        "Ice weaker than wifi at the main station. You don't want that 📵",
+        "Not yet -\nthe ice is too thin 🚫",
+        "Nope.\nDon't go - it's not safe.\nBetter grab a Starobrno at Sokol instead ⚠️",
+        "Ice is weak,\nwait for a proper freeze ❌",
+        "Not yet -\nneeds a few more cold days 🧊",
+        "Not worth the risk -\nice isn't thick enough ⚠️",
+        "Stay home -\nthe Prygl won't hold yet 🚫",
+        "No.\nAnd no, you're not the exception.\nJust wait 🙄",
+        "Ice weaker than wifi at the main station.\nYou don't want that 📵",
       ],
     },
     caution: {
       cs: [
-        "Možná, ale pozor – led je na hraně bezpečnosti ⚠️",
-        "Technicky jo, ale buď opatrný. Led drží jen místy ⚠️",
-        "Na vlastní nebezpečí. Podmínky jsou na hraně ⚠️",
+        "Možná,\nale pozor - led je na hraně bezpečnosti ⚠️",
+        "Technicky jo,\nale buď opatrný.\nLed drží jen místy ⚠️",
+        "Na vlastní nebezpečí.\nPodmínky jsou na hraně ⚠️",
       ],
       en: [
-        "Maybe, but careful — the ice is borderline safe ⚠️",
-        "Technically yes, but be careful. Ice holds only in places ⚠️",
-        "At your own risk. Conditions are borderline ⚠️",
+        "Maybe,\nbut careful - the ice is borderline safe ⚠️",
+        "Technically yes,\nbut be careful.\nIce holds only in places ⚠️",
+        "At your own risk.\nConditions are borderline ⚠️",
       ],
     },
     no_data: {
@@ -87,30 +87,30 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
     off_season: {
       cs: {
         winter: [
-          "Teď tady žádný led není. Skoč na zmrzku do Avion nebo počkej na zimu 🏖️",
+          "Teď tady žádný led není.\nSkoč na zmrzku do Avion nebo počkej na zimu 🏖️",
         ],
         spring: [
-          "Led je pryč, jaro je tady. Vrať se až budeš vidět dech. Tak třeba v listopadu 🌸",
+          "Led je pryč, jaro je tady.\nVrať se až budeš vidět dech.\nTak třeba v listopadu 🌸",
         ],
         summer: [
-          "Na Pryglu teď koupání, ne brusle. Led najdeš maximálně v pivě na Riviéře ☀️",
+          "Na Pryglu teď koupání, ne brusle.\nLed najdeš maximálně v pivě na Riviéře ☀️",
         ],
         autumn: [
-          "Padá listí, ne sníh. Vracej se až bude pořádně zima, nejdřív v prosinci 🍂",
+          "Padá listí, ne sníh.\nVracej se až bude pořádně zima,\nnejdřív v prosinci 🍂",
         ],
       },
       en: {
         winter: [
-          "No ice here now. Grab an ice cream at Avion or wait for winter 🏖️",
+          "No ice here now.\nGrab an ice cream at Avion or wait for winter 🏖️",
         ],
         spring: [
-          "The ice is gone, spring is here. Come back when you can see your breath. Maybe November 🌸",
+          "The ice is gone, spring is here.\nCome back when you can see your breath.\nMaybe November 🌸",
         ],
         summer: [
-          "Swimming at the Prygl now, not skating. Only ice is in your beer at Riviéra ☀️",
+          "Swimming at the Prygl now, not skating.\nOnly ice is in your beer at Riviéra ☀️",
         ],
         autumn: [
-          "Leaves are falling, not snow. Come back when it's properly cold, earliest in December 🍂",
+          "Leaves are falling, not snow.\nCome back when it's properly cold,\nearliest in December 🍂",
         ],
       },
     },
