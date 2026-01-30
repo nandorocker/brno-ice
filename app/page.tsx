@@ -163,7 +163,7 @@ export default function Home() {
         "min-h-screen flex items-center justify-center px-6 pb-12 pt-8",
         "page-enter",
         ready ? "is-ready" : "",
-        displayStatus === "ready" ? "bg-statusGreen text-white" : "",
+        displayStatus === "ready" ? "bg-statusGreen text-black" : "",
         displayStatus === "not_ready" ? "bg-statusRed text-white" : "",
         displayStatus === "caution" ? "bg-slate-900 text-statusYellow" : "",
         displayStatus === "off_season" ? "text-white" : "",
@@ -203,7 +203,7 @@ export default function Home() {
           {message}
         </div>
 
-        <div className="fade-in delay-3 mt-8 md:mt-4 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
+        <div className="fade-in delay-3 mt-8 md:mt-10 lg:mt-8 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
           <div>
             <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
               {content.thicknessLabel}
@@ -237,8 +237,7 @@ export default function Home() {
               <div
                 id="details-body"
                 ref={detailsBodyRef}
-                className="overflow-hidden transition-all duration-300 ease-out"
-                style={{ maxHeight: 0, opacity: 0 }}
+                className="overflow-hidden transition-all duration-300 ease-out max-h-0 opacity-0"
               >
                 <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
                   {detailsText}
@@ -257,7 +256,7 @@ export default function Home() {
               displayStatus === "ready" ? "text-black" : "",
               displayStatus === "caution" ? "text-statusYellow" : "",
               displayStatus === "not_ready" ? "text-white" : "",
-              displayStatus === "off_season" ? "text-slate-900" : "",
+              displayStatus === "off_season" ? "text-white" : "",
             ].join(" ")}
           >
             <div className="lg:flex-1 lg:text-left">

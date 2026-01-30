@@ -26,59 +26,63 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
   const messages = {
     ready: {
       cs: [
-        "Jdeme bruslit! Led drží 🎉",
-        "Hurá na Prygl - led je připravený ⛸️",
+        "Jasně že jo! Led drží 🎉",
+        "Ano. Hurá na Prygl - led je připravený ⛸️",
         "Brusle v ruce a vyraz z Bystrce - led dobrý! ✨",
-        "Led má sílu od Přístaviště až ke Kozí Horce ❄️",
-        "Bezva podmínky - na brusle a hurá na led! 🧊",
-        "Frčíme na Prygl! Je to tam jako beton ⛸️",
+        "Jo, od Přístaviště až ke Kozí Horce to drží ❄️",
+        "Bezva podmínky - frčíme na led! 🧊",
+        "Ale jó! Je to tam jako beton ⛸️",
         "Led je ready, tak proč se ještě díváš na monitor? Vypadni ven 😏",
-        "Led drží líp než Šalina na Rooseveltově. Můžeš na něj ⛸️",
+        "No jasně. Led drží líp než Šalina na Rooseveltově ⛸️",
       ],
       en: [
-        "Let's go skating! The ice is solid 🎉",
-        "Perfect conditions - the ice is ready ⛸️",
+        "Hell yeah! The ice is solid 🎉",
+        "Yes. Perfect conditions - the ice is ready ⛸️",
         "Grab your skates and head out from Bystrc - ice is good! ✨",
-        "Ice is thick from Přístaviště all the way to Kozí Horka ❄️",
-        "Great conditions - get your skates and go! 🧊",
-        "Time for the Prygl! It's solid as concrete ⛸️",
+        "Yep, from Přístaviště all the way to Kozí Horka ❄️",
+        "Great conditions - let's go! 🧊",
+        "Absolutely! It's solid as concrete ⛸️",
         "Ice is ready, so why are you still staring at your screen? Get out there 😏",
-        "Ice holds better than the tram on Rooseveltova. You can go on it ⛸️",
+        "Of course. Ice holds better than the tram on Rooseveltova ⛸️",
       ],
     },
     not_ready: {
       cs: [
         "Ještě ne - led je moc tenký 🚫",
-        "Nechoď tam, není to bezpečný. Radši na Starobrno do Sokoláku ⚠️",
+        "Né. Nechoď tam, není to bezpečný. Radši na Starobrno do Sokoláku ⚠️",
         "Led je slabý, počkej na pořádný mráz ❌",
         "Zatím ne - potřebuje to ještě pár dní mrazu 🧊",
         "Nestojí to za to, led není dost tlustý ⚠️",
         "Zůstaň doma, na Pryglu to ještě nedrží 🚫",
-        "Ne, nemůžeš. A ne, nejsi výjimka. Prostě počkej 🙄",
-        "Led slabší než wifi na Hlaváku. Radši ne 📵",
+        "Ne. A ne, nejsi výjimka. Prostě počkej 🙄",
+        "Led slabší než wifi na Hlaváku. To nechceš 📵",
       ],
       en: [
         "Not yet - the ice is too thin 🚫",
-        "Don't go - it's not safe. Better grab a Starobrno at Sokol instead ⚠️",
+        "Nope. Don't go - it's not safe. Better grab a Starobrno at Sokol instead ⚠️",
         "Ice is weak, wait for a proper freeze ❌",
         "Not yet - needs a few more cold days 🧊",
         "Not worth the risk - ice isn't thick enough ⚠️",
         "Stay home - the Prygl won't hold yet 🚫",
-        "No, you can't. And no, you're not the exception. Just wait 🙄",
-        "Ice weaker than wifi at the main station. Better not 📵",
+        "No. And no, you're not the exception. Just wait 🙄",
+        "Ice weaker than wifi at the main station. You don't want that 📵",
       ],
     },
     caution: {
       cs: [
-        "Pozor – led je na hraně bezpečnosti ⚠️",
-        "Led drží jen místy – buď opatrný ⚠️",
-        "Podmínky jsou na hraně, zvaž opatrnost ⚠️",
+        "Možná, ale pozor – led je na hraně bezpečnosti ⚠️",
+        "Technicky jo, ale buď opatrný. Led drží jen místy ⚠️",
+        "Na vlastní nebezpečí. Podmínky jsou na hraně ⚠️",
       ],
       en: [
-        "Caution — the ice is borderline safe ⚠️",
-        "The ice holds only in places — be careful ⚠️",
-        "Conditions are borderline, use caution ⚠️",
+        "Maybe, but careful — the ice is borderline safe ⚠️",
+        "Technically yes, but be careful. Ice holds only in places ⚠️",
+        "At your own risk. Conditions are borderline ⚠️",
       ],
+    },
+    no_data: {
+      cs: "Ehm, měla by tu být data, ale nejsou. Zkus to za chvíli znovu? 😅",
+      en: "Uh oh, there should be data here but there isn't. Try again in a bit? 😅",
     },
     off_season: {
       cs: {
@@ -112,7 +116,7 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
     },
   } as const;
 
-  let pool: string[] = [];
+  let pool: readonly string[] = [];
   if (status === "off_season") {
     const season = seasonOverride && seasonOverride !== "auto" ? seasonOverride : getSeasonKey();
     pool = messages.off_season[lang][season] || [];
