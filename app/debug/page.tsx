@@ -58,7 +58,11 @@ export default function DebugPage() {
   const buttonClass =
     "rounded-full border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-semibold text-slate-100 transition hover:border-cyan-400/60 hover:text-cyan-100 disabled:cursor-not-allowed disabled:opacity-40";
 
-  const update = (patch: Partial<DebugState>) => {
+  type DebugPatch = Omit<Partial<DebugState>, "overrides"> & {
+    overrides?: Partial<DebugState["overrides"]>;
+  };
+
+  const update = (patch: DebugPatch) => {
     setState((prev) => ({
       ...prev,
       ...patch,
