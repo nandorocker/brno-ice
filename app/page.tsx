@@ -76,6 +76,13 @@ export default function Home() {
     const saved = window.localStorage.getItem("lang");
     if (saved === "cs" || saved === "en") {
       setLang(saved);
+      return;
+    }
+    const sysLang = (navigator.language || "").toLowerCase();
+    if (sysLang.startsWith("cs")) {
+      setLang("cs");
+    } else if (sysLang.startsWith("en")) {
+      setLang("en");
     }
   }, []);
 
