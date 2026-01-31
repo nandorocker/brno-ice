@@ -61,9 +61,11 @@ export default function Home() {
   const [lang, setLang] = useState<Lang>("cs");
   const [message, setMessage] = useState("");
   const [ready, setReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const detailsBodyRef = useRef<HTMLDivElement | null>(null);
   const [seasonOverride, setSeasonOverride] = useState<"auto" | "winter" | "spring" | "summer" | "autumn">("auto");
+  const hasLoadedRef = useRef(false);
 
   const status: StatusKind = data.status || "off_season";
   const seasonKey = seasonOverride !== "auto" ? seasonOverride : getSeasonKey();
@@ -117,6 +119,11 @@ export default function Home() {
         setSeasonOverride(json?.debug?.enabled ? (json?.debug?.seasonOverride || "auto") : "auto");
       } catch {
         // ignore
+      } finally {
+        if (alive && !hasLoadedRef.current) {
+          hasLoadedRef.current = true;
+          setIsLoading(false);
+        }
       }
     };
 
@@ -170,14 +177,15 @@ export default function Home() {
         "min-h-screen flex items-center justify-center px-6 pb-12 pt-8",
         "page-enter",
         ready ? "is-ready" : "",
-        displayStatus === "ready" ? "bg-statusGreen text-black" : "",
-        displayStatus === "not_ready" ? "bg-statusRed text-white" : "",
-        displayStatus === "caution" ? "bg-slate-900 text-statusYellow" : "",
-        displayStatus === "off_season" ? "text-white" : "",
-        displayStatus === "off_season" && seasonKey === "winter" ? "bg-season-winter" : "",
-        displayStatus === "off_season" && seasonKey === "spring" ? "bg-season-spring" : "",
-        displayStatus === "off_season" && seasonKey === "summer" ? "bg-season-summer" : "",
-        displayStatus === "off_season" && seasonKey === "autumn" ? "bg-season-autumn" : "",
+        isLoading ? "bg-slate-950 text-white" : "",
+        !isLoading && displayStatus === "ready" ? "bg-statusGreen text-black" : "",
+        !isLoading && displayStatus === "not_ready" ? "bg-statusRed text-white" : "",
+        !isLoading && displayStatus === "caution" ? "bg-slate-900 text-statusYellow" : "",
+        !isLoading && displayStatus === "off_season" ? "text-white" : "",
+        !isLoading && displayStatus === "off_season" && seasonKey === "winter" ? "bg-season-winter" : "",
+        !isLoading && displayStatus === "off_season" && seasonKey === "spring" ? "bg-season-spring" : "",
+        !isLoading && displayStatus === "off_season" && seasonKey === "summer" ? "bg-season-summer" : "",
+        !isLoading && displayStatus === "off_season" && seasonKey === "autumn" ? "bg-season-autumn" : "",
       ].join(" ")}
     >
       <div className="fixed right-5 top-5 inline-flex gap-1" role="group" aria-label="Language">
@@ -207,7 +215,14 @@ export default function Home() {
             displayStatus === "off_season" ? "text-white" : "",
           ].join(" ")}
         >
-          {message}
+          {isLoading ? (
+            <div className="space-y-3">
+              <div className="h-[1.1em] w-[12ch] rounded-full bg-white/25 animate-pulse" />
+              <div className="h-[1.1em] w-[18ch] rounded-full bg-white/20 animate-pulse" />
+            </div>
+          ) : (
+            message
+          )}
         </div>
 
         <div className="fade-in delay-3 mt-12 md:mt-14 lg:mt-16 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
@@ -215,11 +230,15 @@ export default function Home() {
             <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
               {content.thicknessLabel}
             </span>
-            <div>
-              {displayStatus === "off_season" ? "0 cm" : formatThickness(data.thicknessRange)}
-            </div>
+            {isLoading ? (
+              <div className="mt-3 h-[1em] w-[7ch] rounded-full bg-white/25 animate-pulse" />
+            ) : (
+              <div>
+                {displayStatus === "off_season" ? "0 cm" : formatThickness(data.thicknessRange)}
+              </div>
+            )}
           </div>
-          {displayStatus !== "off_season" ? (
+          {!isLoading && displayStatus !== "off_season" ? (
             <div>
               <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
                 {content.dateLabel}
@@ -230,7 +249,7 @@ export default function Home() {
         </div>
 
         <section className="fade-in delay-4 mt-10" aria-live="polite">
-          {status !== "off_season" && data.reason !== "no_data" ? (
+          {!isLoading && status !== "off_season" && data.reason !== "no_data" ? (
             <div>
               <button
                 type="button"
