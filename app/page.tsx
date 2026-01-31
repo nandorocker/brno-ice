@@ -171,21 +171,43 @@ export default function Home() {
     ? new Date(data.fetchedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague" })
     : "—";
 
+  const statusClasses = isLoading
+    ? "bg-slate-950 text-white"
+    : {
+        ready: "bg-statusGreen text-black",
+        not_ready: "bg-statusRed text-white",
+        caution: "bg-slate-900 text-statusYellow",
+        off_season: {
+          winter: "bg-season-winter text-white",
+          spring: "bg-season-spring text-white",
+          summer: "bg-season-summer text-white",
+          autumn: "bg-season-autumn text-white",
+        },
+      };
+
+  const containerStatusClass =
+    typeof statusClasses === "string"
+      ? statusClasses
+      : displayStatus === "off_season"
+        ? statusClasses.off_season[seasonKey]
+        : statusClasses[displayStatus];
+
+  const footerTextClass =
+    typeof statusClasses === "string"
+      ? ""
+      : displayStatus === "ready"
+        ? "text-black"
+        : displayStatus === "caution"
+          ? "text-statusYellow"
+          : "text-white";
+
   return (
     <div
       className={[
         "min-h-screen flex items-center justify-center px-6 pb-12 pt-8",
         "page-enter",
         ready ? "is-ready" : "",
-        isLoading ? "bg-slate-950 text-white" : "",
-        !isLoading && displayStatus === "ready" ? "bg-statusGreen text-black" : "",
-        !isLoading && displayStatus === "not_ready" ? "bg-statusRed text-white" : "",
-        !isLoading && displayStatus === "caution" ? "bg-slate-900 text-statusYellow" : "",
-        !isLoading && displayStatus === "off_season" ? "text-white" : "",
-        !isLoading && displayStatus === "off_season" && seasonKey === "winter" ? "bg-season-winter" : "",
-        !isLoading && displayStatus === "off_season" && seasonKey === "spring" ? "bg-season-spring" : "",
-        !isLoading && displayStatus === "off_season" && seasonKey === "summer" ? "bg-season-summer" : "",
-        !isLoading && displayStatus === "off_season" && seasonKey === "autumn" ? "bg-season-autumn" : "",
+        containerStatusClass,
       ].join(" ")}
     >
       <div className="fixed right-5 top-5 inline-flex gap-1" role="group" aria-label="Language">
@@ -279,10 +301,7 @@ export default function Home() {
           <div
             className={[
               "mt-10 text-[12px] lg:flex lg:items-center lg:justify-between opacity-65",
-              displayStatus === "ready" ? "text-black" : "",
-              displayStatus === "caution" ? "text-statusYellow" : "",
-              displayStatus === "not_ready" ? "text-white" : "",
-              displayStatus === "off_season" ? "text-white" : "",
+              footerTextClass,
             ].join(" ")}
           >
             <div className="lg:flex-1 lg:text-left">
