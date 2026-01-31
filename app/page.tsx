@@ -25,8 +25,10 @@ const TEXT = {
     thicknessLabel: "Tloušťka ledu",
     dateLabel: "Datum měření",
     updatedLabel: "Aktualizováno:",
+    sourceLabel: "Zdroj:",
     footer: "Vstup na zamrzlou hladinu je vždy na vlastní nebezpečí.",
-    madeBy: "Vyrobeno nandorockerem se skates & láskou.",
+    madeBy: "©2026 by",
+    madeBySuffix: "No affiliation to prygl.net",
   },
   en: {
     title: "Can I skate the Prygl?",
@@ -34,8 +36,10 @@ const TEXT = {
     thicknessLabel: "Ice thickness",
     dateLabel: "Report date",
     updatedLabel: "Last updated:",
+    sourceLabel: "Source:",
     footer: "Skating is always at your own risk.",
-    madeBy: "Made by nandorocker with skates & love.",
+    madeBy: "©2026 by",
+    madeBySuffix: "No affiliation to prygl.net",
   },
 };
 
@@ -91,6 +95,10 @@ export default function Home() {
   useEffect(() => {
     document.documentElement.lang = lang;
     window.localStorage.setItem("lang", lang);
+  }, [lang]);
+
+  useEffect(() => {
+    document.title = TEXT[lang].title;
   }, [lang]);
 
   useEffect(() => {
@@ -309,21 +317,23 @@ export default function Home() {
           footerTextClass,
         ].join(" ")}
       >
-        <div className="mx-auto w-full lg:max-w-[1200px] lg:flex lg:items-center lg:justify-between">
-          <div className="lg:flex-1 lg:text-left">
-            {content.updatedLabel} {lastUpdated} — Source:{" "}
-            <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
-              prygl.net
-            </a>
+        <div className="mx-auto w-full lg:max-w-[1200px] lg:grid lg:grid-cols-2 lg:items-end lg:gap-6">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 lg:text-left">
+            <span>
+              {content.updatedLabel} {lastUpdated} — {content.sourceLabel}{" "}
+              <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
+                prygl.net
+              </a>
+            </span>
+            <span>·</span>
+            <span>{content.footer}</span>
           </div>
-          <div className="lg:flex-1 lg:text-center">
+          <div className="mt-3 lg:mt-0 lg:text-right">
             {content.madeBy}{" "}
             <a className="underline" href="https://nan.do" target="_blank" rel="noreferrer">
               nan.do
             </a>
-          </div>
-          <div className="lg:flex-1 lg:text-right">
-            {content.footer}
+            . {content.madeBySuffix}
           </div>
         </div>
       </footer>
