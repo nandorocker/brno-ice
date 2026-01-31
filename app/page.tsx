@@ -204,7 +204,7 @@ export default function Home() {
   return (
     <div
       className={[
-        "min-h-screen flex items-center justify-center px-6 pb-12 pt-8",
+        "min-h-screen flex flex-col px-6 pb-6 pt-8",
         "page-enter",
         ready ? "is-ready" : "",
         containerStatusClass,
@@ -227,7 +227,8 @@ export default function Home() {
         </button>
       </div>
 
-      <main className="w-full text-left lg:max-w-[1200px]">
+      <div className="flex-1 flex items-center justify-center">
+        <main className="w-full text-left lg:max-w-[1200px]">
         <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] uppercase font-title font-extrabold">
           <span className="opacity-65">{content.title}</span>
         </div>
@@ -298,30 +299,34 @@ export default function Home() {
               </div>
             </div>
           ) : null}
-          <div
-            className={[
-              "mt-10 text-[12px] lg:flex lg:items-center lg:justify-between opacity-65",
-              footerTextClass,
-            ].join(" ")}
-          >
-            <div className="lg:flex-1 lg:text-left">
-              {content.updatedLabel} {lastUpdated} — Source:{" "}
-              <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
-                prygl.net
-              </a>
-            </div>
-            <div className="lg:flex-1 lg:text-center">
-              {content.madeBy}{" "}
-              <a className="underline" href="https://nan.do" target="_blank" rel="noreferrer">
-                nan.do
-              </a>
-            </div>
-            <div className="lg:flex-1 lg:text-right">
-              {content.footer}
-            </div>
-          </div>
         </section>
-      </main>
+        </main>
+      </div>
+
+      <footer
+        className={[
+          "mt-auto w-full text-[12px] opacity-65",
+          footerTextClass,
+        ].join(" ")}
+      >
+        <div className="mx-auto w-full lg:max-w-[1200px] lg:flex lg:items-center lg:justify-between">
+          <div className="lg:flex-1 lg:text-left">
+            {content.updatedLabel} {lastUpdated} — Source:{" "}
+            <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
+              prygl.net
+            </a>
+          </div>
+          <div className="lg:flex-1 lg:text-center">
+            {content.madeBy}{" "}
+            <a className="underline" href="https://nan.do" target="_blank" rel="noreferrer">
+              nan.do
+            </a>
+          </div>
+          <div className="lg:flex-1 lg:text-right">
+            {content.footer}
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
