@@ -20,8 +20,8 @@ export function getMessagePool(status: StatusKind, lang: Lang, reason?: string, 
   } as const;
 
   const unknownThickness = {
-    cs: ["Nejsme si jistí —\ndata jsou neúplná.\nZkus to později? 🤷"],
-    en: ["Not sure —\ndata is incomplete.\nCheck back later? 🤷"],
+    cs: ["Je to záhada —\nžádná nedávná měření.\nZkus to později? 🤷"],
+    en: ["It's a mystery —\nno recent measurements.\nCheck back later? 🤷"],
   } as const;
 
   if (reason === "no_data") {
