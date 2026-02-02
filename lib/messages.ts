@@ -94,6 +94,9 @@ export function getMessagePool(status: StatusKind, lang: Lang, reason?: string, 
     },
     off_season: {
       cs: {
+        winter: [
+          "Teď tady žádný led není.\nSkoč na zmrzku do Avion nebo počkej na mráz 🥶",
+        ],
         spring: [
           "Led je pryč, jaro je tady.\nVrať se až budeš vidět dech. 🌸",
         ],
@@ -105,6 +108,9 @@ export function getMessagePool(status: StatusKind, lang: Lang, reason?: string, 
         ],
       },
       en: {
+        winter: [
+          "No ice here now.\nGrab an ice cream at Avion or wait for a proper freeze 🥶",
+        ],
         spring: [
           "The ice is gone, spring is here.\nCome back when you can see your breath. 🌸",
         ],
