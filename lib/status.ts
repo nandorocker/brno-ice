@@ -9,6 +9,9 @@ const MIN_SAFE_CM = Number(process.env.MIN_SAFE_CM || 12);
 const MIN_CAUTION_CM = Number(process.env.MIN_CAUTION_CM || 10);
 const DEBUG_MODE = process.env.DEBUG_MODE === "1";
 const CACHE_TTL_MS = Number(process.env.CACHE_TTL_MS || 12 * 60 * 60 * 1000);
+const SHARED_CACHE_URL = process.env.SHARED_CACHE_URL || "";
+const SHARED_CACHE_TOKEN = process.env.SHARED_CACHE_TOKEN || "";
+const SHARED_CACHE_KEY = process.env.SHARED_CACHE_KEY || "prygl-status";
 
 const DEFAULT_DEBUG_OVERRIDES: DebugOverrides = {
   hasData: true,
@@ -23,6 +26,7 @@ const DEFAULT_DEBUG_OVERRIDES: DebugOverrides = {
 
 let cached: StatusData | null = null;
 let lastFetchMs = 0;
+let inFlight: Promise<StatusData> | null = null;
 
 let debugState: DebugState = {
   enabled: true,
@@ -316,6 +320,48 @@ function translateLines(lines: string[]) {
   return lines.map((line) => translateLine(line));
 }
 
+function sharedCacheEnabled() {
+  return Boolean(SHARED_CACHE_URL && SHARED_CACHE_TOKEN);
+}
+
+async function readSharedCache(): Promise<StatusData | null> {
+  if (!sharedCacheEnabled()) return null;
+  try {
+    const res = await fetch(`${SHARED_CACHE_URL.replace(/\/$/, "")}/get/${encodeURIComponent(SHARED_CACHE_KEY)}`, {
+      headers: { Authorization: `Bearer ${SHARED_CACHE_TOKEN}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as { result?: string | null };
+    if (!json || typeof json.result !== "string") return null;
+    const parsed = JSON.parse(json.result) as { data?: StatusData } | StatusData;
+    const data = (parsed as { data?: StatusData }).data ?? (parsed as StatusData);
+    return data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function writeSharedCache(data: StatusData) {
+  if (!sharedCacheEnabled()) return;
+  try {
+    const ttlSeconds = Math.max(60, Math.floor(CACHE_TTL_MS / 1000));
+    await fetch(
+      `${SHARED_CACHE_URL.replace(/\/$/, "")}/set/${encodeURIComponent(SHARED_CACHE_KEY)}?EX=${ttlSeconds}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${SHARED_CACHE_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data }),
+      }
+    );
+  } catch {
+    // ignore shared cache failures
+  }
+}
+
 function determineStatus(input: {
   measurementDate: string | null;
   thicknessRange: string | null;
@@ -506,10 +552,35 @@ export async function getStatus(force = false): Promise<StatusData> {
     return cached;
   }
 
-  const data = await scrapePrygl();
-  cached = data;
-  lastFetchMs = now;
-  return data;
+  if (!force && !cached) {
+    const shared = await readSharedCache();
+    if (shared) {
+      cached = shared;
+      lastFetchMs = now;
+      return shared;
+    }
+  }
+
+  if (!force && inFlight) {
+    return inFlight;
+  }
+
+  inFlight = (async () => {
+    try {
+      const data = await scrapePrygl();
+      cached = data;
+      lastFetchMs = Date.now();
+      await writeSharedCache(data);
+      return data;
+    } catch (err) {
+      if (cached) return cached;
+      throw err;
+    } finally {
+      inFlight = null;
+    }
+  })();
+
+  return inFlight;
 }
 
 export { DEBUG_MODE, SOURCE_URL };

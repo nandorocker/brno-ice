@@ -15,15 +15,15 @@ Next.js app that scrapes ice conditions for Brněnská přehrada (Prygl) from pr
 
 ## Setup
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Then open http://localhost:3000.
 
 ## Debug mode
 ```bash
-DEBUG_MODE=1 npm run dev
+DEBUG_MODE=1 pnpm run dev
 ```
 Open http://localhost:3000/debug to override status data.
 
@@ -33,6 +33,9 @@ Environment variables:
 - `MIN_CAUTION_CM` (default: 10)
 - `STALE_DAYS` (default: 7)
 - `CACHE_TTL_MS` (default: 43200000)
+- `SHARED_CACHE_URL` (Upstash REST base URL)
+- `SHARED_CACHE_TOKEN` (Upstash REST token)
+- `SHARED_CACHE_KEY` (default: `prygl-status`)
 - `DEBUG_MODE=1` to enable the debug dashboard at `/debug`
 
 ## Endpoints
