@@ -15,7 +15,7 @@ const titleFont = Baloo_2({
 });
 
 export const metadata: Metadata = {
-  title: "Brno Reservoir Skating Conditions",
+  title: "Můžu bruslit na Prýglu?",
   description: "Real-time ice skating status for Brněnská přehrada (Prygl).",
   icons: {
     icon: [
