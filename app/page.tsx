@@ -229,7 +229,7 @@ function DebugFloater({ onRefresh, onNextMessage }: { onRefresh: () => void; onN
         <div className="flex justify-end">
           <button
             type="button"
-            className="mt-[18px] h-7 w-7 rounded-full border border-white/15 text-xs"
+            className="mt-[18px] inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/15 text-xs"
             onClick={onNextMessage}
             aria-label="Shuffle message"
           >
@@ -244,6 +244,7 @@ function DebugFloater({ onRefresh, onNextMessage }: { onRefresh: () => void; onN
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
+              className="block"
             >
               <path d="m18 14 4 4-4 4" />
               <path d="m18 2 4 4-4 4" />
