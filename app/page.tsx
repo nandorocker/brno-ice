@@ -43,6 +43,31 @@ const TEXT = {
   },
 };
 
+const PARTICLES_CONFIG = {
+  particles: {
+    number: { value: 120, density: { enable: true, value_area: 800 } },
+    color: { value: "#ffffff" },
+    shape: { type: "circle" },
+    opacity: { value: 0.7, random: true },
+    size: { value: 4, random: true, anim: { enable: false, speed: 2, size_min: 1.2, sync: false } },
+    line_linked: { enable: false },
+    move: {
+      enable: true,
+      speed: 1,
+      direction: "bottom",
+      straight: false,
+      random: false,
+      out_mode: "out",
+      bounce: false,
+    },
+  },
+  interactivity: {
+    detect_on: "canvas",
+    events: { onhover: { enable: false }, onclick: { enable: false }, resize: true },
+  },
+  retina_detect: true,
+};
+
 function formatDate(value: string | null) {
   return value || "—";
 }
@@ -70,6 +95,7 @@ export default function Home() {
   const detailsBodyRef = useRef<HTMLDivElement | null>(null);
   const [seasonOverride, setSeasonOverride] = useState<"auto" | "winter" | "spring" | "summer" | "autumn">("auto");
   const hasLoadedRef = useRef(false);
+  const particlesActiveRef = useRef(false);
 
   const status: StatusKind = data.status || "off_season";
   const seasonKey = seasonOverride !== "auto" ? seasonOverride : getSeasonKey();
@@ -147,6 +173,52 @@ export default function Home() {
     setMessage(pickMessage(displayStatus, lang, data.reason, seasonOverride));
   }, [displayStatus, lang, data.reason, seasonOverride]);
 
+  useEffect(() => {
+    if (displayStatus !== "ready") {
+      if (particlesActiveRef.current) {
+        const w = window as typeof window & { pJSDom?: Array<{ pJS?: { fn?: { vendors?: { destroypJS?: () => void } } } }> };
+        w.pJSDom?.forEach((instance) => instance.pJS?.fn?.vendors?.destroypJS?.());
+        w.pJSDom = [];
+        const canvas = document.querySelector("#particles-js > canvas");
+        if (canvas) canvas.remove();
+        particlesActiveRef.current = false;
+      }
+      return;
+    }
+
+    let cancelled = false;
+    const initParticles = () => {
+      if (cancelled) return;
+      const w = window as typeof window & { particlesJS?: (tagId: string, params: typeof PARTICLES_CONFIG) => void };
+      if (!w.particlesJS) return;
+      w.particlesJS("particles-js", PARTICLES_CONFIG);
+      particlesActiveRef.current = true;
+    };
+
+    const existingScript = document.getElementById("particles-js-script") as HTMLScriptElement | null;
+    if (existingScript) {
+      if (existingScript.dataset.loaded === "true") {
+        initParticles();
+      } else {
+        existingScript.addEventListener("load", initParticles, { once: true });
+      }
+    } else {
+      const script = document.createElement("script");
+      script.id = "particles-js-script";
+      script.src = "https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js";
+      script.async = true;
+      script.addEventListener("load", () => {
+        script.dataset.loaded = "true";
+        initParticles();
+      });
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [displayStatus]);
+
   const lines = lang === "cs" ? data.detailsCzLines : data.detailsEnLines;
   const filteredLines = lines.filter((line) => {
     if (lang === "cs") {
@@ -184,7 +256,7 @@ export default function Home() {
     : {
         ready: "bg-statusGreen text-black",
         not_ready: "bg-statusRed text-white",
-        caution: "bg-slate-900 text-statusYellow",
+        caution: "bg-statusYellow text-black",
         off_season: {
           winter: "bg-season-winter text-white",
           spring: "bg-season-spring text-white",
@@ -206,36 +278,39 @@ export default function Home() {
       : displayStatus === "ready"
         ? "text-black"
         : displayStatus === "caution"
-          ? "text-statusYellow"
+          ? "text-black"
           : "text-white";
 
   return (
     <div
       className={[
-        "min-h-screen flex flex-col px-6 pb-6 pt-8",
+        "relative min-h-screen flex flex-col px-6 pb-6 pt-8",
         "page-enter",
         ready ? "is-ready" : "",
         containerStatusClass,
       ].join(" ")}
     >
-      <div className="fixed right-5 top-5 inline-flex gap-1" role="group" aria-label="Language">
+      {displayStatus === "ready" ? (
+        <div id="particles-js" className="pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
+      ) : null}
+      <div className="fixed right-5 top-5 z-20 inline-flex gap-1" role="group" aria-label="Language">
         <button
           type="button"
-          className={`rounded-full px-3 py-1 text-sm ${lang === "cs" ? "font-bold opacity-100" : "opacity-80"}`}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${lang === "cs" ? "font-bold opacity-100" : "opacity-80"}`}
           onClick={() => setLang("cs")}
         >
           CS
         </button>
         <button
           type="button"
-          className={`rounded-full px-3 py-1 text-sm ${lang === "en" ? "font-bold opacity-100" : "opacity-80"}`}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${lang === "en" ? "font-bold opacity-100" : "opacity-80"}`}
           onClick={() => setLang("en")}
         >
           EN
         </button>
       </div>
 
-      <div className="flex-1 flex items-center justify-center">
+      <div className="relative z-10 flex-1 flex items-center justify-center">
         <main className="w-full text-left lg:max-w-[1200px]">
         <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] uppercase font-title font-extrabold">
           <span className="opacity-65">{content.title}</span>
@@ -289,7 +364,7 @@ export default function Home() {
                 aria-controls="details-body"
                 onClick={() => setDetailsOpen((prev) => !prev)}
               >
-                ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
+                {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
               </button>
               <div
                 id="details-body"
