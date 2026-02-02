@@ -520,9 +520,9 @@ export default function Home() {
         </button>
       </div>
 
-      <div className="relative z-10 flex-1 flex items-center justify-center">
+      <div className="relative z-10 mt-10 flex-1 flex items-center justify-center">
         <main className="w-full text-left lg:max-w-screen-xl">
-        <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] uppercase font-title font-extrabold">
+        <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] leading-[1.2] uppercase font-title font-extrabold">
           <span className="opacity-65">{content.title}</span>
         </div>
         <div
@@ -573,17 +573,17 @@ export default function Home() {
             <div>
               <button
                 type="button"
-                className="font-bold text-left"
+                className="font-bold text-left bg-black/10 px-6 py-2 rounded-full hover:bg-black/20 transition-colors"
                 aria-expanded={detailsOpen}
                 aria-controls="details-body"
                 onClick={() => setDetailsOpen((prev) => !prev)}
               >
-                {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
+                ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
               </button>
               <div
                 id="details-body"
                 ref={detailsBodyRef}
-                className="overflow-hidden transition-all duration-300 ease-out max-h-0 opacity-0"
+                className="pl-6 pt-4 overflow-hidden transition-all duration-300 ease-out max-h-0 opacity-0"
               >
                 <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
                   {detailsText}
@@ -602,7 +602,7 @@ export default function Home() {
 
       <footer
         className={[
-          "mt-auto w-full text-[12px] opacity-65",
+          "mt-10 w-full text-[12px] opacity-65",
           footerTextClass,
         ].join(" ")}
       >
