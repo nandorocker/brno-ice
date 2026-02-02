@@ -13,22 +13,30 @@ function getSeasonKey(): SeasonKey {
   return "autumn";
 }
 
-export function pickMessage(status: StatusKind, lang: Lang, reason?: string, seasonOverride?: SeasonKey | "auto") {
+export function getMessagePool(status: StatusKind, lang: Lang, reason?: string, seasonOverride?: SeasonKey | "auto") {
   const noData = {
     cs: ["Ehm, měla by tu být data,\nale nejsou. Zkus to za chvíli znovu? 😅"],
-    en: ["Uh oh, there should be data here,\nbut there isn't. Try again in a bit? 😅"],
+    en: ["Hmm, there should be data here, but there isn't. Try again in a bit? 😅"],
+  } as const;
+
+  const unknownThickness = {
+    cs: ["Nejsme si jistí —\ndata jsou neúplná.\nZkus to později? 🤷"],
+    en: ["Not sure —\ndata is incomplete.\nCheck back later? 🤷"],
   } as const;
 
   if (reason === "no_data") {
-    return noData[lang][0];
+    return noData[lang];
+  }
+  if (reason === "unknown_thickness") {
+    return unknownThickness[lang];
   }
 
   const messages = {
     ready: {
       cs: [
         "Jasně že jo!\nLed drží 🎉",
-        "Ano.\nHurá na Prygl - led je připravený ⛸️",
-        "Brusle v ruce a vyraz z Bystrce -\led dobrý! ✨",
+        "Ano. Hurá na Prygl - led je připravený ⛸️",
+        "Brusle v ruce a vyraz z Bystrce -\nled dobrý! ✨",
         "Jo, od Přístaviště až ke Kozí Horce to drží ❄️",
         "Bezva podmínky -\nfrčíme na led! 🧊",
         "Ale jó!\nJe to tam jako beton ⛸️",
@@ -64,20 +72,20 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
         "Not yet -\nneeds a few more cold days 🧊",
         "Not worth the risk -\nice isn't thick enough ⚠️",
         "Stay home -\nthe Prygl won't hold yet ✋",
-        "Nope.\nYou'll have to wait 🙄",
+        "Nope.\nYou're gonna have to wait... 🙄",
         "Ice weaker than wifi at the main station.\nYou don't want that 📵",
       ],
     },
     caution: {
       cs: [
-        "Možná,\nale pozor - led je na hraně bezpečnosti ⚠️",
-        "Technicky jo,\nale buď opatrný.\nLed drží jen místy ⚠️",
-        "Na vlastní nebezpečí.\nPodmínky jsou na hraně ⚠️",
+        "Možná, ale pozor - \nled je na hraně\nbezpečnosti 👀",
+        "Technicky jo,\nale buď opatrný.\nLed drží jen místy 👀",
+        "Na vlastní nebezpečí.\nPodmínky jsou na hraně 👀",
       ],
       en: [
-        "Maybe,\nbut careful - the ice is borderline safe ⚠️",
-        "Technically yes,\nbut be careful.\nIce holds only in places ⚠️",
-        "At your own risk.\nConditions are borderline ⚠️",
+        "Maybe,\nbut careful - the ice is borderline safe 👀",
+        "Technically yes,\nbut be careful.\nIce holds only in places 👀",
+        "At your own risk.\nConditions are borderline 👀",
       ],
     },
     no_data: {
@@ -86,31 +94,25 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
     },
     off_season: {
       cs: {
-        winter: [
-          "Teď tady žádný led není.\nSkoč na zmrzku do Avion nebo počkej na zimu 🏖️",
-        ],
         spring: [
-          "Led je pryč, jaro je tady.\nVrať se až budeš vidět dech.\nTak třeba v listopadu 🌸",
+          "Led je pryč, jaro je tady.\nVrať se až budeš vidět dech. 🌸",
         ],
         summer: [
-          "Na Pryglu teď koupání, ne brusle.\nLed najdeš maximálně v pivě na Riviéře ☀️",
+          "Vždyť jediný led co tu je,\nje v tvým ledovým Starobrnu. ☀️",
         ],
         autumn: [
           "Padá listí, ne sníh.\nVracej se až bude pořádně zima,\nnejdřív v prosinci 🍂",
         ],
       },
       en: {
-        winter: [
-          "No ice here now.\nGrab an ice cream at Avion or wait for winter 🏖️",
-        ],
         spring: [
-          "The ice is gone, spring is here.\nCome back when you can see your breath.\nMaybe November 🌸",
+          "The ice is gone, spring is here.\nCome back when you can see your breath. 🌸",
         ],
         summer: [
-          "Swimming at the Prygl now, not skating.\nOnly ice is in your beer at Riviéra ☀️",
+          "The only ice on the Prygl right now is from your icy Starobrno, vole. ☀️",
         ],
         autumn: [
-          "Leaves are falling, not snow.\nCome back when it's properly cold,\nearliest in December 🍂",
+          "Leaves are falling, not snow.\nCome back in actual winter! 🍂",
         ],
       },
     },
@@ -124,6 +126,11 @@ export function pickMessage(status: StatusKind, lang: Lang, reason?: string, sea
     pool = messages[status][lang] || [];
   }
 
+  return pool;
+}
+
+export function pickMessage(status: StatusKind, lang: Lang, reason?: string, seasonOverride?: SeasonKey | "auto") {
+  const pool = getMessagePool(status, lang, reason, seasonOverride);
   if (!pool.length) return "";
   const index = Math.floor(Math.random() * pool.length);
   return pool[index];

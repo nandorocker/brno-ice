@@ -45,15 +45,15 @@ const TEXT = {
 
 const PARTICLES_CONFIG = {
   particles: {
-    number: { value: 120, density: { enable: true, value_area: 800 } },
+    number: { value: 75, density: { enable: true, value_area: 1000 } },
     color: { value: "#ffffff" },
     shape: { type: "circle" },
-    opacity: { value: 0.7, random: true },
-    size: { value: 4, random: true, anim: { enable: false, speed: 2, size_min: 1.2, sync: false } },
+    opacity: { value: 0.6, random: true, anim: { enable: true, speed: 0.35, opacity_min: 0.2, sync: false } },
+    size: { value: 6, random: true, anim: { enable: false, speed: 2, size_min: 2, sync: false } },
     line_linked: { enable: false },
     move: {
       enable: true,
-      speed: 1,
+      speed: 0.9,
       direction: "bottom",
       straight: false,
       random: false,
@@ -233,7 +233,24 @@ function DebugFloater({ onRefresh, onNextMessage }: { onRefresh: () => void; onN
             onClick={onNextMessage}
             aria-label="Shuffle message"
           >
-            🔀
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m18 14 4 4-4 4" />
+              <path d="m18 2 4 4-4 4" />
+              <path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22" />
+              <path d="M2 6h1.972a4 4 0 0 1 3.6 2.2" />
+              <path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45" />
+            </svg>
           </button>
         </div>
         <div className="flex justify-end">
@@ -344,8 +361,13 @@ export default function Home() {
   );
 
   useEffect(() => {
-    setMessageIndex(0);
-  }, [displayStatus, lang, data.reason, seasonOverride]);
+    if (!messagePool.length) {
+      setMessageIndex(0);
+      return;
+    }
+    const nextIndex = Math.floor(Math.random() * messagePool.length);
+    setMessageIndex(nextIndex);
+  }, [displayStatus, lang, data.reason, seasonOverride, messagePool.length]);
 
   const message =
     messagePool.length > 0 ? messagePool[messageIndex % messagePool.length] : "";
