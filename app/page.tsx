@@ -500,132 +500,150 @@ export default function Home() {
         onRefresh={fetchStatus}
         onNextMessage={() => setMessageIndex((prev) => prev + 1)}
       />
-      {displayStatus === "ready" ? (
-        <div id="particles-js" className="pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
-      ) : null}
-      <div className="fixed right-5 top-5 z-20 inline-flex gap-1" role="group" aria-label="Language">
-        <button
-          type="button"
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${lang === "cs" ? "font-bold opacity-100" : "opacity-80"}`}
-          onClick={() => setLang("cs")}
-        >
-          CS
-        </button>
-        <button
-          type="button"
-          className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${lang === "en" ? "font-bold opacity-100" : "opacity-80"}`}
-          onClick={() => setLang("en")}
-        >
-          EN
-        </button>
-      </div>
-
-      <div className="relative z-10 mt-10 flex-1 flex items-center justify-center">
-        <main className="w-full text-left lg:max-w-screen-xl">
-        <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] leading-[1.2] uppercase font-title font-extrabold">
-          <span className="opacity-65">{content.title}</span>
-        </div>
+      {isLoading ? (
         <div
-          className={[
-            "fade-in delay-2 mt-2 text-[clamp(44px,8vw,100px)] md:text-[clamp(52px,7.8vw,102px)] lg:text-[clamp(38px,5.5vw,76px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[25ch] whitespace-pre-line",
-            displayStatus === "off_season" ? "text-white" : "",
-          ].join(" ")}
+          className="preloader-overlay"
+          aria-live="polite"
+          aria-label="Loading status"
         >
-          {isLoading ? (
-            <div className="space-y-3">
-              <div className="h-[1.1em] w-[12ch] rounded-full bg-white/25 animate-pulse" />
-              <div className="h-[1.1em] w-[18ch] rounded-full bg-white/20 animate-pulse" />
-            </div>
-          ) : (
-            message
-          )}
+          <div className="preloader-stack">
+            <svg className="preloader-ring" viewBox="0 0 240 240" aria-hidden="true">
+              <defs>
+                <path
+                  id="preloader-text-circle"
+                  d="M120,120 m-84,0 a84,84 0 1,1 168,0 a84,84 0 1,1 -168,0"
+                />
+              </defs>
+              <g className="preloader-rotor">
+                <text className="preloader-text">
+                  <textPath href="#preloader-text-circle" startOffset="0%">
+                    {"Is Prygl frozen? • Je Prýgl zamrzlý? • Is Prygl frozen? • Je Prýgl zamrzlý? •"}
+                  </textPath>
+                </text>
+              </g>
+            </svg>
+          </div>
         </div>
+      ) : null}
+      {!isLoading ? (
+        <>
+          {displayStatus === "ready" ? (
+            <div id="particles-js" className="pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
+          ) : null}
+          <div className="fixed right-5 top-5 z-20 inline-flex gap-1" role="group" aria-label="Language">
+            <button
+              type="button"
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${lang === "cs" ? "font-bold opacity-100" : "opacity-80"}`}
+              onClick={() => setLang("cs")}
+            >
+              CS
+            </button>
+            <button
+              type="button"
+              className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-sm ${lang === "en" ? "font-bold opacity-100" : "opacity-80"}`}
+              onClick={() => setLang("en")}
+            >
+              EN
+            </button>
+          </div>
 
-        <div className="fade-in delay-3 mt-12 md:mt-14 lg:mt-16 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
-          <div>
-            <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
-              {content.thicknessLabel}
-            </span>
-            {isLoading ? (
-              <div className="mt-3 h-[1em] w-[7ch] rounded-full bg-white/25 animate-pulse" />
-            ) : (
+          <div className="relative z-10 mt-10 flex-1 flex items-center justify-center">
+            <main className="w-full text-left lg:max-w-screen-xl">
+            <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] leading-[1.2] uppercase font-title font-extrabold">
+              <span className="opacity-65">{content.title}</span>
+            </div>
+            <div
+              className={[
+                "fade-in delay-2 mt-2 min-h-[2.2em] text-[clamp(44px,8vw,100px)] md:text-[clamp(52px,7.8vw,102px)] lg:text-[clamp(38px,5.5vw,76px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[25ch] whitespace-pre-line",
+                displayStatus === "off_season" ? "text-white" : "",
+              ].join(" ")}
+            >
+              {message}
+            </div>
+
+            <div className="fade-in delay-3 mt-12 md:mt-14 lg:mt-16 flex flex-wrap items-start gap-10 text-[40px] font-extrabold">
               <div>
-                {displayStatus === "off_season"
-                  ? "0 cm"
-                  : data.reason === "unknown_thickness"
-                    ? "? cm"
-                    : formatThickness(data.thicknessRange)}
+                <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
+                  {content.thicknessLabel}
+                </span>
+                <div>
+                  {displayStatus === "off_season"
+                    ? "0 cm"
+                    : data.reason === "unknown_thickness"
+                      ? "? cm"
+                      : formatThickness(data.thicknessRange)}
+                </div>
               </div>
-            )}
-          </div>
-          {!isLoading && displayStatus !== "off_season" ? (
-            <div>
-              <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
-                {content.dateLabel}
-              </span>
-              <div>{formatDate(data.measurementDate)}</div>
+              {displayStatus !== "off_season" ? (
+                <div>
+                  <span className="block text-[14px] tracking-[0.08em] uppercase opacity-65">
+                    {content.dateLabel}
+                  </span>
+                  <div>{formatDate(data.measurementDate)}</div>
+                </div>
+              ) : null}
             </div>
-          ) : null}
-        </div>
 
-        <section className="fade-in delay-4 mt-10" aria-live="polite">
-          {!isLoading && status !== "off_season" && data.reason !== "no_data" ? (
-            <div>
-              <button
-                type="button"
-                className="font-bold text-left bg-black/10 px-6 py-2 rounded-full hover:bg-black/20 transition-colors"
-                aria-expanded={detailsOpen}
-                aria-controls="details-body"
-                onClick={() => setDetailsOpen((prev) => !prev)}
-              >
-                ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
-              </button>
-              <div
-                id="details-body"
-                ref={detailsBodyRef}
-                className="pl-6 pt-4 overflow-hidden transition-all duration-300 ease-out max-h-0 opacity-0"
-              >
-                <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
-                  {detailsText}
-                </p>
-                {warningsText ? (
-                  <div className="mt-4 text-[14px] leading-relaxed max-w-reading">
-                    {warningsText}
+            <section className="fade-in delay-4 mt-10" aria-live="polite">
+              {status !== "off_season" && data.reason !== "no_data" ? (
+                <div>
+                  <button
+                    type="button"
+                    className="font-bold text-left bg-black/10 px-6 py-2 rounded-full hover:bg-black/20 transition-colors"
+                    aria-expanded={detailsOpen}
+                    aria-controls="details-body"
+                    onClick={() => setDetailsOpen((prev) => !prev)}
+                  >
+                    ⚠️ {content.detailsTitle} {detailsOpen ? "▴" : "▾"}
+                  </button>
+                  <div
+                    id="details-body"
+                    ref={detailsBodyRef}
+                    className="pl-6 pt-4 overflow-hidden transition-all duration-300 ease-out max-h-0 opacity-0"
+                  >
+                    <p className="whitespace-pre-line text-[15px] leading-relaxed max-w-reading">
+                      {detailsText}
+                    </p>
+                    {warningsText ? (
+                      <div className="mt-4 text-[14px] leading-relaxed max-w-reading">
+                        {warningsText}
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
+                </div>
+              ) : null}
+            </section>
+            </main>
+          </div>
+
+          <footer
+            className={[
+              "mt-10 w-full text-[12px] opacity-65",
+              footerTextClass,
+            ].join(" ")}
+          >
+            <div className="mx-auto w-full lg:max-w-screen-xl lg:grid lg:grid-cols-2 lg:items-end lg:gap-6">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 lg:text-left">
+                <span>
+                  {content.updatedLabel} {lastUpdated} — {content.sourceLabel}{" "}
+                  <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
+                    prygl.net
+                  </a>
+                </span>
+                <span>·</span>
+                <span>{content.footer}</span>
+              </div>
+              <div className="mt-3 lg:mt-0 lg:text-right">
+                {content.madeBy}{" "}
+                <a className="underline" href="https://nan.do" target="_blank" rel="noreferrer">
+                  nan.do
+                </a>
+                . {content.madeBySuffix}
               </div>
             </div>
-          ) : null}
-        </section>
-        </main>
-      </div>
-
-      <footer
-        className={[
-          "mt-10 w-full text-[12px] opacity-65",
-          footerTextClass,
-        ].join(" ")}
-      >
-        <div className="mx-auto w-full lg:max-w-screen-xl lg:grid lg:grid-cols-2 lg:items-end lg:gap-6">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 lg:text-left">
-            <span>
-              {content.updatedLabel} {lastUpdated} — {content.sourceLabel}{" "}
-              <a className="underline" href="https://www.prygl.net/" target="_blank" rel="noreferrer">
-                prygl.net
-              </a>
-            </span>
-            <span>·</span>
-            <span>{content.footer}</span>
-          </div>
-          <div className="mt-3 lg:mt-0 lg:text-right">
-            {content.madeBy}{" "}
-            <a className="underline" href="https://nan.do" target="_blank" rel="noreferrer">
-              nan.do
-            </a>
-            . {content.madeBySuffix}
-          </div>
-        </div>
-      </footer>
+          </footer>
+        </>
+      ) : null}
     </div>
   );
 }

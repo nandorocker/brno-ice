@@ -55,4 +55,62 @@
   .delay-2 { transition-delay: 160ms; }
   .delay-3 { transition-delay: 240ms; }
   .delay-4 { transition-delay: 320ms; }
+
+  .preloader-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    pointer-events: auto;
+    background: #78909c;
+  }
+
+  .preloader-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #f7fafc;
+    text-align: center;
+    position: relative;
+  }
+
+  .preloader-ring {
+    width: min(70vw, 240px);
+    height: min(70vw, 240px);
+  }
+
+  .preloader-rotor {
+    transform-origin: 50% 50%;
+    animation: preloader-spin 9s linear infinite;
+  }
+
+  .preloader-text {
+    fill: currentColor;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    transform-origin: 50% 50%;
+    animation: preloader-flip 5s ease-in-out infinite;
+  }
+
+  .preloader-emoji {
+    position: absolute;
+    font-size: clamp(42px, 10vw, 88px);
+    line-height: 1;
+    color: currentColor;
+    filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.25));
+  }
+
+  @keyframes preloader-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes preloader-flip {
+    0%, 100% { transform: scaleX(1); opacity: 0.85; }
+    50% { transform: scaleX(1); opacity: 0.6; }
+  }
+
 }
