@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { StatusData, StatusKind } from "@/lib/types";
-import { pickMessage } from "@/lib/messages";
+import { getMessagePool } from "@/lib/messages";
 
 const EMPTY_DATA: StatusData = {
   fetchedAt: null,
@@ -85,10 +85,175 @@ function getSeasonKey(): SeasonKey {
   return "autumn";
 }
 
+type DebugStatusOverride = "auto" | "ready" | "caution" | "not_ready" | "off_season" | "no_data" | "unknown_thickness";
+type DebugSeasonOverride = "auto" | "spring" | "summer" | "autumn" | "winter";
+type DebugStatusSelection =
+  | "ready"
+  | "caution"
+  | "not_ready"
+  | "off_season_spring"
+  | "off_season_summer"
+  | "off_season_autumn"
+  | "no_data"
+  | "unknown_thickness";
+
+type DebugState = {
+  enabled: boolean;
+  overrides: {
+    statusOverride: DebugStatusOverride;
+    seasonOverride?: DebugSeasonOverride;
+  };
+};
+
+function DebugFloater({ onRefresh, onNextMessage }: { onRefresh: () => void; onNextMessage: () => void }) {
+  const [available, setAvailable] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+  const [state, setState] = useState<DebugState | null>(null);
+  const refreshTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      try {
+        const res = await fetch("/api/debug");
+        if (!res.ok) {
+          if (alive) setAvailable(false);
+          return;
+        }
+        const json = await res.json();
+        if (!alive) return;
+        const next = (json.debugState || json) as DebugState;
+        setState(next);
+        setAvailable(true);
+      } catch {
+        if (alive) setAvailable(false);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const update = async (next: DebugState) => {
+    setState(next);
+    try {
+      await fetch("/api/debug", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(next),
+      });
+      if (refreshTimerRef.current) {
+        window.clearTimeout(refreshTimerRef.current);
+      }
+      refreshTimerRef.current = window.setTimeout(() => {
+        onRefresh();
+        refreshTimerRef.current = null;
+      }, 300);
+    } catch {
+      // ignore
+    }
+  };
+
+  if (loading || !available || !state) return null;
+
+  const resolveStatusSelection = (): DebugStatusSelection => {
+    if (state.overrides.statusOverride !== "off_season") return state.overrides.statusOverride as DebugStatusSelection;
+    if (state.overrides.seasonOverride === "summer") return "off_season_summer";
+    if (state.overrides.seasonOverride === "autumn") return "off_season_autumn";
+    return "off_season_spring";
+  };
+
+  const applyStatusSelection = (value: DebugStatusSelection) => {
+    const isOffSeason = value.startsWith("off_season_");
+    const seasonOverride = isOffSeason
+      ? (value.replace("off_season_", "") as DebugSeasonOverride)
+      : "auto";
+    update({
+      ...state,
+      overrides: {
+        ...state.overrides,
+        statusOverride: isOffSeason ? "off_season" : (value as DebugStatusOverride),
+        seasonOverride,
+      },
+    });
+  };
+
+  if (collapsed) {
+    return (
+      <button
+        type="button"
+        aria-label="Expand debug controls"
+        className="fixed right-5 bottom-5 z-50 h-12 w-12 rounded-full border border-white/20 bg-black/70 text-white shadow-lg backdrop-blur"
+        onClick={() => setCollapsed(false)}
+      >
+        🐛
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed right-4 bottom-4 z-50 w-fit max-w-[90vw] rounded-2xl border border-white/15 bg-black/70 p-3 text-white shadow-lg backdrop-blur">
+      <div className="grid items-start gap-3 sm:grid-cols-[max-content_max-content_max-content_max-content]">
+        <div>
+          <label className="block text-xs uppercase tracking-[0.2em] opacity-70">Debug mode</label>
+          <label className="mt-1.5 flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={state.enabled}
+              onChange={(e) => update({ ...state, enabled: e.target.checked })}
+            />
+            Enabled
+          </label>
+        </div>
+        <div>
+          <label className="block text-xs uppercase tracking-[0.2em] opacity-70">Status</label>
+          <select
+            className="mt-1.5 w-full rounded-md border border-white/15 bg-black/60 px-2 py-1 text-sm"
+            value={resolveStatusSelection()}
+            onChange={(e) => applyStatusSelection(e.target.value as DebugStatusSelection)}
+          >
+            <option value="ready">Ready (green)</option>
+            <option value="caution">Warning / Risky (yellow)</option>
+            <option value="not_ready">Not allowed (red)</option>
+            <option value="off_season_spring">Off season (spring)</option>
+            <option value="off_season_summer">Off season (summer)</option>
+            <option value="off_season_autumn">Off season (autumn)</option>
+            <option value="no_data">No data / Error</option>
+            <option value="unknown_thickness">Unknown thickness</option>
+          </select>
+        </div>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="mt-[18px] h-7 w-7 rounded-full border border-white/15 text-xs"
+            onClick={onNextMessage}
+            aria-label="Shuffle message"
+          >
+            🔀
+          </button>
+        </div>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="mt-[18px] h-7 w-7 rounded-full border border-white/15 text-xs"
+            onClick={() => setCollapsed(true)}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [data, setData] = useState<StatusData>(EMPTY_DATA);
   const [lang, setLang] = useState<Lang>("cs");
-  const [message, setMessage] = useState("");
+  const [messageIndex, setMessageIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -132,46 +297,58 @@ export default function Home() {
     return () => window.cancelAnimationFrame(id);
   }, []);
 
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch("/api/status", { cache: "no-store" });
+      if (!res.ok) return;
+      const json = await res.json();
+      setData({
+        fetchedAt: json.cachedAt || null,
+        measurementDate: json.measurementDate || null,
+        thicknessRange: json.thicknessRange || null,
+        detailsCzLines: json.detailsCzLines || [],
+        detailsEnLines: json.detailsEnLines || [],
+        warnings: Boolean(json.warnings),
+        status: json.status || "off_season",
+        reason: json.reason || "unknown",
+      });
+      setSeasonOverride(json?.debug?.enabled ? (json?.debug?.seasonOverride || "auto") : "auto");
+    } catch {
+      // ignore
+    } finally {
+      if (!hasLoadedRef.current) {
+        hasLoadedRef.current = true;
+        setIsLoading(false);
+      }
+    }
+  };
+
   useEffect(() => {
     let alive = true;
-    const fetchStatus = async () => {
-      try {
-        const res = await fetch("/api/status", { cache: "no-store" });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (!alive) return;
-        setData({
-          fetchedAt: json.cachedAt || null,
-          measurementDate: json.measurementDate || null,
-          thicknessRange: json.thicknessRange || null,
-          detailsCzLines: json.detailsCzLines || [],
-          detailsEnLines: json.detailsEnLines || [],
-          warnings: Boolean(json.warnings),
-          status: json.status || "off_season",
-          reason: json.reason || "unknown",
-        });
-        setSeasonOverride(json?.debug?.enabled ? (json?.debug?.seasonOverride || "auto") : "auto");
-      } catch {
-        // ignore
-      } finally {
-        if (alive && !hasLoadedRef.current) {
-          hasLoadedRef.current = true;
-          setIsLoading(false);
-        }
-      }
+    const load = async () => {
+      if (!alive) return;
+      await fetchStatus();
     };
 
-    fetchStatus();
-    const id = window.setInterval(fetchStatus, 10 * 60 * 1000);
+    load();
+    const id = window.setInterval(load, 10 * 60 * 1000);
     return () => {
       alive = false;
       window.clearInterval(id);
     };
   }, []);
 
+  const messagePool = useMemo(
+    () => getMessagePool(displayStatus, lang, data.reason, seasonOverride),
+    [displayStatus, lang, data.reason, seasonOverride]
+  );
+
   useEffect(() => {
-    setMessage(pickMessage(displayStatus, lang, data.reason, seasonOverride));
+    setMessageIndex(0);
   }, [displayStatus, lang, data.reason, seasonOverride]);
+
+  const message =
+    messagePool.length > 0 ? messagePool[messageIndex % messagePool.length] : "";
 
   useEffect(() => {
     if (displayStatus !== "ready") {
@@ -251,12 +428,14 @@ export default function Home() {
     ? new Date(data.fetchedAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague" })
     : "—";
 
+  const isNoData = data.reason === "no_data" || data.reason === "unknown_thickness";
   const statusClasses = isLoading
     ? "bg-slate-950 text-white"
     : {
         ready: "bg-statusGreen text-black",
         not_ready: "bg-statusRed text-white",
         caution: "bg-statusYellow text-black",
+        no_data: "bg-statusNeutral text-white",
         off_season: {
           winter: "bg-season-winter text-white",
           spring: "bg-season-spring text-white",
@@ -268,18 +447,22 @@ export default function Home() {
   const containerStatusClass =
     typeof statusClasses === "string"
       ? statusClasses
-      : displayStatus === "off_season"
-        ? statusClasses.off_season[seasonKey]
-        : statusClasses[displayStatus];
+      : isNoData
+        ? statusClasses.no_data
+        : displayStatus === "off_season"
+          ? statusClasses.off_season[seasonKey]
+          : statusClasses[displayStatus];
 
   const footerTextClass =
     typeof statusClasses === "string"
       ? ""
-      : displayStatus === "ready"
-        ? "text-black"
-        : displayStatus === "caution"
+      : isNoData
+        ? "text-white"
+        : displayStatus === "ready"
           ? "text-black"
-          : "text-white";
+          : displayStatus === "caution"
+            ? "text-black"
+            : "text-white";
 
   return (
     <div
@@ -289,7 +472,11 @@ export default function Home() {
         ready ? "is-ready" : "",
         containerStatusClass,
       ].join(" ")}
-    >
+      >
+      <DebugFloater
+        onRefresh={fetchStatus}
+        onNextMessage={() => setMessageIndex((prev) => prev + 1)}
+      />
       {displayStatus === "ready" ? (
         <div id="particles-js" className="pointer-events-none fixed inset-0 z-0" aria-hidden="true" />
       ) : null}
@@ -311,13 +498,13 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 flex-1 flex items-center justify-center">
-        <main className="w-full text-left lg:max-w-[1200px]">
+        <main className="w-full text-left lg:max-w-screen-xl">
         <div className="fade-in delay-1 text-[clamp(26px,3.4vw,38px)] tracking-[0.08em] uppercase font-title font-extrabold">
           <span className="opacity-65">{content.title}</span>
         </div>
         <div
           className={[
-            "fade-in delay-2 mt-2 text-[clamp(44px,8vw,100px)] md:text-[clamp(52px,7.8vw,102px)] lg:text-[clamp(38px,5.5vw,76px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[24ch] whitespace-pre-line",
+            "fade-in delay-2 mt-2 text-[clamp(44px,8vw,100px)] md:text-[clamp(52px,7.8vw,102px)] lg:text-[clamp(38px,5.5vw,76px)] leading-[0.9] uppercase font-title font-extrabold lg:max-w-[25ch] whitespace-pre-line",
             displayStatus === "off_season" ? "text-white" : "",
           ].join(" ")}
         >
@@ -340,7 +527,11 @@ export default function Home() {
               <div className="mt-3 h-[1em] w-[7ch] rounded-full bg-white/25 animate-pulse" />
             ) : (
               <div>
-                {displayStatus === "off_season" ? "0 cm" : formatThickness(data.thicknessRange)}
+                {displayStatus === "off_season"
+                  ? "0 cm"
+                  : data.reason === "unknown_thickness"
+                    ? "? cm"
+                    : formatThickness(data.thicknessRange)}
               </div>
             )}
           </div>
@@ -392,7 +583,7 @@ export default function Home() {
           footerTextClass,
         ].join(" ")}
       >
-        <div className="mx-auto w-full lg:max-w-[1200px] lg:grid lg:grid-cols-2 lg:items-end lg:gap-6">
+        <div className="mx-auto w-full lg:max-w-screen-xl lg:grid lg:grid-cols-2 lg:items-end lg:gap-6">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 lg:text-left">
             <span>
               {content.updatedLabel} {lastUpdated} — {content.sourceLabel}{" "}

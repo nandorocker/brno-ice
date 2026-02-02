@@ -30,7 +30,7 @@ let debugState: DebugState = {
 };
 
 const DEBUG_EXAMPLES: Record<
-  StatusKind,
+  StatusKind | "no_data" | "unknown_thickness",
   Omit<StatusData, "fetchedAt" | "detailsEnLines" | "reason" | "status"> & { warnings: boolean }
 > = {
   ready: {
@@ -68,7 +68,31 @@ const DEBUG_EXAMPLES: Record<
   off_season: {
     measurementDate: null,
     thicknessRange: null,
-    detailsCzLines: [],
+    detailsCzLines: [
+      "Data z měření ledu městskou policií dne: —",
+      "Tloušťka ledu: —",
+      "Mimo sezonu. Měření se neprovádí.",
+    ],
+    warnings: false,
+  },
+  no_data: {
+    measurementDate: null,
+    thicknessRange: null,
+    detailsCzLines: [
+      "Data z měření ledu městskou policií dne: —",
+      "Tloušťka ledu: —",
+      "Data nejsou momentálně dostupná.",
+    ],
+    warnings: false,
+  },
+  unknown_thickness: {
+    measurementDate: "1. 2. 2026",
+    thicknessRange: null,
+    detailsCzLines: [
+      "Data z měření ledu městskou policií dne: 1. 2. 2026",
+      "Tloušťka ledu: ? cm",
+      "Podrobnější info: Na webu je tloušťka uvedena jen jako otazník.",
+    ],
     warnings: false,
   },
 };
@@ -195,10 +219,20 @@ function parseMeasurementDate(text: string) {
 }
 
 function parseThicknessRange(text: string) {
-  const match = text.match(/Tloušťka ledu\s*[:\-]?\s*(?:cca|asi|okolo|až)?\s*([0-9]{1,2}(?:[,.][0-9])?(?:\s*-\s*[0-9]{1,2}(?:[,.][0-9])?)?)\s*cm/i);
-  if (match) return match[1].replace(/\s+/g, " ").trim();
-  const fallback = text.match(/([0-9]{1,2}(?:[,.][0-9])?(?:\s*-\s*[0-9]{1,2}(?:[,.][0-9])?)?)\s*cm/i);
-  return fallback ? fallback[1].replace(/\s+/g, " ").trim() : null;
+  const lines = text
+    .split("\n")
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  for (const line of lines) {
+    if (!/tloušťka ledu|ice thickness/i.test(line)) continue;
+    if (/\?\s*cm?/.test(line) || /\b\?\b/.test(line)) return null;
+    const match = line.match(
+      /(Tloušťka ledu|Ice thickness)\s*[:\-]?\s*(?:cca|asi|okolo|až)?\s*([0-9]{1,2}(?:[,.][0-9])?(?:\s*-\s*[0-9]{1,2}(?:[,.][0-9])?)?)\s*cm/i
+    );
+    if (match) return match[2].replace(/\s+/g, " ").trim();
+    return null;
+  }
+  return null;
 }
 
 function parseMinThickness(range: string | null) {
@@ -371,8 +405,8 @@ function buildDebugData(): StatusData {
   const o = debugState.overrides;
   const detailsCzLines = Array.isArray(o.detailsCzLines) ? [...o.detailsCzLines] : [];
   const fullText = detailsCzLines.join("\n");
-  const statusOverride = (o.statusOverride || "auto") as StatusKind | "auto" | "no_data";
-  const example = statusOverride !== "auto" && statusOverride !== "no_data" ? DEBUG_EXAMPLES[statusOverride] : null;
+  const statusOverride = (o.statusOverride || "auto") as StatusKind | "auto" | "no_data" | "unknown_thickness";
+  const example = statusOverride !== "auto" ? DEBUG_EXAMPLES[statusOverride] : null;
   const measurementDate = o.measurementDate || parseMeasurementDate(fullText) || example?.measurementDate || null;
   const thicknessRange = o.thicknessRange || parseThicknessRange(fullText) || example?.thicknessRange || null;
   let warnings = Boolean(o.warnings);
@@ -385,6 +419,9 @@ function buildDebugData(): StatusData {
     if (statusOverride === "no_data") {
       status = "off_season";
       reason = "no_data";
+    } else if (statusOverride === "unknown_thickness") {
+      status = "not_ready";
+      reason = "unknown_thickness";
     } else {
       status = statusOverride;
       reason = "debug_override";
@@ -430,7 +467,7 @@ export function sanitizeDebugOverrides(input: Partial<DebugOverrides> | null) {
   if (typeof input.hasData === "boolean") out.hasData = input.hasData;
   if (typeof input.skatingAllowed === "boolean") out.skatingAllowed = input.skatingAllowed;
   if (typeof input.warnings === "boolean") out.warnings = input.warnings;
-  if (input.statusOverride === "auto" || input.statusOverride === "ready" || input.statusOverride === "not_ready" || input.statusOverride === "caution" || input.statusOverride === "off_season" || input.statusOverride === "no_data") {
+  if (input.statusOverride === "auto" || input.statusOverride === "ready" || input.statusOverride === "not_ready" || input.statusOverride === "caution" || input.statusOverride === "off_season" || input.statusOverride === "no_data" || input.statusOverride === "unknown_thickness") {
     out.statusOverride = input.statusOverride;
   }
   if (input.seasonOverride === "auto" || input.seasonOverride === "winter" || input.seasonOverride === "spring" || input.seasonOverride === "summer" || input.seasonOverride === "autumn") {

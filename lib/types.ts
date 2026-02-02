@@ -15,7 +15,7 @@ export type DebugOverrides = {
   hasData: boolean;
   skatingAllowed: boolean;
   warnings: boolean;
-  statusOverride: StatusKind | "auto" | "no_data";
+  statusOverride: StatusKind | "auto" | "no_data" | "unknown_thickness";
   seasonOverride: "auto" | "winter" | "spring" | "summer" | "autumn";
   measurementDate: string | null;
   thicknessRange: string | null;
